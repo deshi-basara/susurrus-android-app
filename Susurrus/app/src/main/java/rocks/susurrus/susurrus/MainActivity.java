@@ -1,6 +1,7 @@
-package app.susurrus.susurrus;
+package rocks.susurrus.susurrus;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -8,10 +9,19 @@ import android.view.MenuItem;
 
 public class MainActivity extends Activity {
 
+    private boolean firstStart = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // did the user start the app for the first time?
+        if(firstStart) {
+            // true, show intro
+            Intent intentIntro = new Intent(this, IntroActivity.class);
+            startActivity(intentIntro);
+        }
     }
 
 

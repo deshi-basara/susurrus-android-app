@@ -1,4 +1,4 @@
-package app.susurrus.susurrus;
+package rocks.susurrus.susurrus;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -3,4 +3,16 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    <!-- Intro Activity -->
+    <string name="intro_activity">Intro Activity</string>
+    <string name="intro_welcome">Bevor du loslegen kannst müssen noch einige wichtige Einstellungen getroffen werden</string>
+    <string name="intro_home_headline">Wohnort</string>
+    <string name="intro_home_question">Für welchen Wohnort möchtest du Benachrichtigungen erhalten?</string>
+    <string name="intro_question_two">In welchem Bezirk wohnst du?</string>
+    <string name="intro_question_three">Welche Mülltypen interessieren dich?</string>
+    <string name="intro_button_next">Weiter</string>
+    <string name="intro_button_prev">Zurück</string>
+    <string name="intro_button_ready">Fertig</string>
+
 </resources>

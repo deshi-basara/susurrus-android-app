@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "app.susurrus.susurrus"
+        applicationId "rocks.susurrus.susurrus"
         minSdkVersion 21
         targetSdkVersion 21
         versionCode 1
@@ -21,4 +21,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'me.relex:circleindicator:1.1.3@aar'
+    compile "com.android.support:appcompat-v7:18.0.+"
 }
