@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="blue" type="color">#7371FC</item>
+    <item name="purple" type="color">#A594F9</item>
+    <item name="lightpurple" type="color">#CDC1FF</item>
+    <item name="white" type="color">#F5EFFF</item>
+    <item name="lighterpurple" type="color">#E5D9F2</item>
+
+    <integer-array name="androidcolors">
+        <item>@color/blue</item>
+        <item>@color/purple</item>
+        <item>@color/lightpurple</item>
+        <item>@color/white</item>
+        <item>@color/lighterpurple</item>
+    </integer-array>
+</resources>
