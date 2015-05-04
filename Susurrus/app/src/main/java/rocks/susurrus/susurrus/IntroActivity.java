@@ -1,5 +1,7 @@
 package rocks.susurrus.susurrus;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
@@ -119,13 +121,23 @@ public class IntroActivity extends FragmentActivity {
         switch(currentPos) {
             case 0:
                 // default start position, hide prev-button
-                buttonPrev.setVisibility(View.INVISIBLE);
+                buttonPrev.animate()
+                        .alpha(0)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                // after fadeOut, make button invisible
+                                buttonPrev.setVisibility(View.INVISIBLE);
+                            }
+                        });
                 // change the indicator dot
                 break;
             case 1:
-                // make the prev-button visible
+                // make the prev-button visible & animate it in
                 buttonPrev.setVisibility(View.VISIBLE);
-                // change the indicator dot
+                buttonPrev.animate()
+                        .alpha(1)
+                        .setListener(null); // clears previously set listeners
                 break;
             case 2:
                 // insert button next text, if the user clicked the buttonPrev
