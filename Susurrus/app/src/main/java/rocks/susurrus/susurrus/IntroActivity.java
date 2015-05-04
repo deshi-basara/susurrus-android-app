@@ -1,7 +1,5 @@
 package rocks.susurrus.susurrus;
 
-
-
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
@@ -15,8 +13,9 @@ import android.widget.RadioGroup;
 import me.relex.circleindicator.CircleIndicator;
 import rocks.susurrus.susurrus.views.adapters.IntroPageAdapter;
 
-
 public class IntroActivity extends FragmentActivity {
+
+    final private String logIndicator = "IntroActivity";
 
     /**
      * The pager widget, which handles animation and allows swiping horizontally to access previous
@@ -47,14 +46,14 @@ public class IntroActivity extends FragmentActivity {
         setContentView(R.layout.activity_intro);
 
         // Instantiate ViewPager and PagerAdapter.
-        introPager =(ViewPager) findViewById(R.id.viewpager_unselected_background);
+        introPager = (ViewPager) findViewById(R.id.viewpager_unselected_background);
         CircleIndicator introIndicator = (CircleIndicator) findViewById(R.id.indicator_unselected_background);
         introPagerAdapter = new IntroPageAdapter(getSupportFragmentManager());
         introPager.setAdapter(introPagerAdapter);
         introIndicator.setViewPager(introPager);
 
         // start listening for page changes
-        /*introPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        introIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
@@ -67,14 +66,14 @@ public class IntroActivity extends FragmentActivity {
 
             @Override
             public void onPageScrollStateChanged(int state) {}
-        });*/
+        });
 
         // get all elements and add click events if necessary
         buttonNext = (Button) findViewById(R.id.intro_button_next);
         buttonNext.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // the user clicked the next button, increment position
-                slidePos++;
+                // user clicked next button, increment position
+                slidePos = introPager.getCurrentItem() + 1;
                 onControlButton();
             }
         });
@@ -105,8 +104,8 @@ public class IntroActivity extends FragmentActivity {
      * Sets the viewPager page to the current slidePos.
      */
     private void onControlButton() {
-        Log.d("IntroAcitvity", "Control button clicked");
-        //introPager.setCurrentItem(slidePos, true);
+        //Log.d("IntroAcitvity", "Control button clicked");
+        introPager.setCurrentItem(slidePos, true);
     }
 
     /**
@@ -115,7 +114,7 @@ public class IntroActivity extends FragmentActivity {
      * @param currentPos
      */
     private void onPositionChanged(int currentPos) {
-        Log.w("IntroActivity", String.valueOf(currentPos));
+        Log.w(logIndicator, String.valueOf(currentPos));
 
         /*switch(currentPos) {
             case 0:
