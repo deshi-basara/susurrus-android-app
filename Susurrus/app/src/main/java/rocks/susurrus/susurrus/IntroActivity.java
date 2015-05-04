@@ -77,14 +77,14 @@ public class IntroActivity extends FragmentActivity {
                 onControlButton();
             }
         });
-        /*buttonPrev = (Button) findViewById(R.id.intro_button_prev);
+        buttonPrev = (Button) findViewById(R.id.intro_button_prev);
         buttonPrev.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // the user clicked the prev button, decrement position
-                slidePos--;
+                slidePos = introPager.getCurrentItem() - 1;
                 onControlButton();
             }
-        });*/
+        });
     }
 
     @Override
@@ -104,7 +104,7 @@ public class IntroActivity extends FragmentActivity {
      * Sets the viewPager page to the current slidePos.
      */
     private void onControlButton() {
-        //Log.d("IntroAcitvity", "Control button clicked");
+        Log.d(logIndicator, "onControlButton(): " + slidePos);
         introPager.setCurrentItem(slidePos, true);
     }
 
@@ -114,31 +114,27 @@ public class IntroActivity extends FragmentActivity {
      * @param currentPos
      */
     private void onPositionChanged(int currentPos) {
-        Log.w(logIndicator, String.valueOf(currentPos));
+        Log.w(logIndicator, "onPositionChanged() " + currentPos);
 
-        /*switch(currentPos) {
+        switch(currentPos) {
             case 0:
                 // default start position, hide prev-button
                 buttonPrev.setVisibility(View.INVISIBLE);
                 // change the indicator dot
-                radioIndicators.check(R.id.intro_radio_0);
                 break;
             case 1:
                 // make the prev-button visible
                 buttonPrev.setVisibility(View.VISIBLE);
                 // change the indicator dot
-                radioIndicators.check(R.id.intro_radio_1);
                 break;
             case 2:
-                radioIndicators.check(R.id.intro_radio_2);
                 // insert button next text, if the user clicked the buttonPrev
                 buttonNext.setText(getString(R.string.intro_button_next));
                 break;
             case 3:
-                radioIndicators.check(R.id.intro_radio_3);
                 // insert button ready text, we are on the last step
                 buttonNext.setText(getString(R.string.intro_button_ready));
                 break;
-        }*/
+        }
     }
 }
