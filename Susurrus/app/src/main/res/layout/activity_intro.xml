@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:droidicon="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -11,14 +12,13 @@
         android:layout_height="0dp"
         android:layout_weight="40">
 
-        <ImageView
+        <!--<ImageView
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/image_map"
             android:src="@drawable/background_map"
-            android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            />
+            />-->
 
     </RelativeLayout>
 
@@ -26,7 +26,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="60"
-        android:background="@color/purple">
+        android:background="@color/purple"
+        android:elevation="5dp">
 
         <android.support.v4.view.ViewPager
             android:id="@+id/viewpager_unselected_background"

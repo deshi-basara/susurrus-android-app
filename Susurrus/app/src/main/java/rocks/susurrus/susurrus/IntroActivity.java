@@ -51,6 +51,7 @@ public class IntroActivity extends FragmentActivity {
         introPager = (ViewPager) findViewById(R.id.viewpager_unselected_background);
         CircleIndicator introIndicator = (CircleIndicator) findViewById(R.id.indicator_unselected_background);
         introPagerAdapter = new IntroPageAdapter(getSupportFragmentManager());
+        //introPager.setOffscreenPageLimit(introPagerAdapter.getCount());
         introPager.setAdapter(introPagerAdapter);
         introIndicator.setViewPager(introPager);
 
@@ -116,13 +117,13 @@ public class IntroActivity extends FragmentActivity {
      * @param currentPos
      */
     private void onPositionChanged(int currentPos) {
-        Log.w(logIndicator, "onPositionChanged() " + currentPos);
+        //Log.d(logIndicator, "onPositionChanged() " + currentPos);
 
         switch(currentPos) {
             case 0:
                 // default start position, hide prev-button
                 buttonPrev.animate()
-                        .alpha(0)
+                        .alpha(0f)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
@@ -130,13 +131,12 @@ public class IntroActivity extends FragmentActivity {
                                 buttonPrev.setVisibility(View.INVISIBLE);
                             }
                         });
-                // change the indicator dot
                 break;
             case 1:
                 // make the prev-button visible & animate it in
                 buttonPrev.setVisibility(View.VISIBLE);
                 buttonPrev.animate()
-                        .alpha(1)
+                        .alpha(1f)
                         .setListener(null); // clears previously set listeners
                 break;
             case 2:

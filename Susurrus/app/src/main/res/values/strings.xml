@@ -15,4 +15,12 @@
     <string name="intro_button_prev">Zurück</string>
     <string name="intro_button_ready">Fertig</string>
 
+    <string name="intro_one_headline">Willkommen</string>
+
+    <string name="intro_two_headline">Benutzung</string>
+
+    <string name="intro_three_headline">Benutzername</string>
+
+    <string name="intro_four_headline">Generiere</string>
+
 </resources>
