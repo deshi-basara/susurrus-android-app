@@ -10,7 +10,8 @@
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="40">
+        android:layout_weight="40"
+        android:id="@+id/upper_container">
 
         <!--<ImageView
             android:layout_width="fill_parent"
@@ -20,6 +21,17 @@
             android:scaleType="centerCrop"
             />-->
 
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/logo"
+            android:src="@mipmap/ic_launcher"
+            android:layout_alignParentTop="false"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="-20dp"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentBottom="true" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -27,7 +39,8 @@
         android:layout_height="0dp"
         android:layout_weight="60"
         android:background="@color/purple"
-        android:elevation="5dp">
+        android:elevation="5dp"
+        android:id="@+id/lower_container">
 
         <android.support.v4.view.ViewPager
             android:id="@+id/viewpager_unselected_background"
@@ -58,6 +71,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
             android:textColor="@android:color/white"
+            android:drawableRight="@drawable/ic_navigate_next_white_18dp"
             />
 
         <Button
