@@ -26,5 +26,6 @@
     <string name="intro_three_headline">Benutzername</string>
 
     <string name="intro_four_headline">Generiere</string>
+    <string name="title_activity_chat">ChatActivity</string>
 
 </resources>
