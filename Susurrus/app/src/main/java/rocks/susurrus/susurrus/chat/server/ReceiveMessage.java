@@ -1,4 +1,4 @@
-package rocks.susurrus.susurrus.chat.client;
+package rocks.susurrus.susurrus.chat.server;
 
 import android.os.AsyncTask;
 import android.os.Message;
@@ -8,13 +8,14 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
  * AsyncTask
  */
-public class ReceiveMessage extends AsyncTask<Void, Void, Void>  {
+public class ReceiveMessage extends AsyncTask<Void, Void, Void> {
     private static final String LOG_TAG = "Client.ReceiveMessage";
     private static final int SERVER_PORT = 4445;
 
@@ -40,6 +41,35 @@ public class ReceiveMessage extends AsyncTask<Void, Void, Void>  {
      */
     protected Void doInBackground(Void... params) {
         Log.d(LOG_TAG, "Establishing a connection to the socket server ...");
+
+        /*
+        try {
+            // establish a socket connection to server
+            socket = new ServerSocket(SERVER_PORT);
+            Log.d(LOG_TAG, "... accepting connection, start listening for messages.");
+
+            while(true){
+                //Socket clientSocket = serverSocket.accept();
+
+                InputStream inputStream = clientSocket.getInputStream();
+                ObjectInputStream objectIS = new ObjectInputStream(inputStream);
+                Message message = (Message) objectIS.readObject();
+
+                //Add the InetAdress of the sender to the message
+                InetAddress senderAddr = clientSocket.getInetAddress();
+                message.setSenderAddress(senderAddr);
+
+                clientSocket.close();
+                publishProgress(message);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
 
         try {
             // establish a socket connection to server
@@ -68,7 +98,7 @@ public class ReceiveMessage extends AsyncTask<Void, Void, Void>  {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        }
+        }*/
 
         return null;
     }

@@ -9,12 +9,19 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import rocks.susurrus.susurrus.chat.ReceiverService;
+import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
+import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
 
 
@@ -28,12 +35,21 @@ public class ChatActivity extends ActionBarActivity {
     private WifiP2pManager.Channel mChannel;
     private BroadcastReceiver mReceiver;
 
+
+    // chat
+    private MessageAdapter messageAdapter;
+
+    // view
+    private ListView messageListView;
+    private EditText messageInputText;
+    private Button messageSendButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        setLayout();
+        setView();
 
         // set filter-actions, that will later be handled by the WiFiDirectBroadcastReceiver
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -49,7 +65,7 @@ public class ChatActivity extends ActionBarActivity {
         mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
 
         // start service for receiving messages
-        startService(new Intent(this, ReceiverService.class));
+        //startService(new Intent(this, ReceiverService.class));
     }
 
     @Override
@@ -89,12 +105,25 @@ public class ChatActivity extends ActionBarActivity {
     }
 
     /**
-     * Get's all needed layout views and adds events if needed.
+     * Gets all needed layout views, sets adapters and adds events if needed.
      */
-    private void setLayout() {
-        Button discoverPeers = (Button) findViewById(R.id.testButton);
+    private void setView() {
+        // get views
+        messageListView = (ListView) findViewById(R.id.message_list_view);
+        messageSendButton = (Button) findViewById(R.id.message_send_button);
+        messageInputText = (EditText) findViewById(R.id.message_input_text);
 
-        discoverPeers.setOnClickListener(new View.OnClickListener() {
+        // set adapters
+        messageAdapter = new MessageAdapter(getApplicationContext(),
+                R.layout.activity_chat_message);
+        messageListView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+        messageListView.setAdapter(messageAdapter);
+
+        // set events
+        messageInputText.setOnKeyListener(messageInputTextListener);
+        messageSendButton.setOnClickListener(messageSendButtonListener);
+
+        /*discoverPeers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.d(LOG_TAG, "Finding peers ...");
@@ -111,6 +140,51 @@ public class ChatActivity extends ActionBarActivity {
                     }
                 });
             }
-        });
+        });*/
     }
+
+    /**
+     * Adds a new message to the messageAdapter and resets the messageInputText.
+     * @return True, if message was added successfully.
+     */
+    private Boolean addNewMessage() {
+        // reset input text field
+        String messageText = messageInputText.getText().toString();
+        messageInputText.setText("");
+
+        Log.d(LOG_TAG, "New message: " + messageText);
+
+        // add message to the adapter
+        MessageModel newMessage = new MessageModel(true, messageText);
+        //messageAdapter.add(newMessage);
+
+        return true;
+    }
+
+    /**
+     * OnKeyListener for the messageInputText-View.
+     */
+    private View.OnKeyListener messageInputTextListener = new View.OnKeyListener() {
+        @Override
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+            // send message if the user tabs the enter button
+            if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                    (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                Log.d(LOG_TAG, "messageInputTextListener");
+                return addNewMessage();
+            }
+            return false;
+        }
+    };
+
+    /**
+     * OnClickListener for the messageSendButton-View.
+     */
+    private View.OnClickListener messageSendButtonListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(LOG_TAG, "messageSendButtonListener");
+            addNewMessage();
+        }
+    };
 }

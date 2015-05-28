@@ -5,6 +5,8 @@ import android.os.IBinder;
 import android.app.Service;
 import android.util.Log;
 
+import rocks.susurrus.susurrus.chat.client.ReceiveMessage;
+
 /**
  * Android service.
  * Used for executing a long-running AsyncTask in background even if the user leaves the app.
@@ -32,13 +34,13 @@ public class ReceiverService extends Service {
      * Is called whenever an Activity requests the start of our service.
      */
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOG_TAG, "onStartCommand");
+        Log.d(LOG_TAG, "Service started ...");
 
         // start listening for messages send via socket using an AsyncTask
 
         // force serial task execution to improve stability
-        Log.d(LOG_TAG, "start listening for message from the server");
-        //new ReceiveMessage().execute();
+        Log.d(LOG_TAG, "... start listening for message from the server");
+        new ReceiveMessage().execute();
        /* WifiDirectBroadcastReceiver mReceiver = WifiDirectBroadcastReceiver.createInstance();
 
         //Start the AsyncTask for the server to receive messages
