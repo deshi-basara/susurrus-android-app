@@ -1,5 +1,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" android:showAsAction="never" />
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+    <!-- Action buttons -->
+    <item
+        android:id="@+id/action_discover"
+        android:title="@string/action_discover"
+        android:icon="@drawable/ic_autorenew_white_48dp"
+        android:orderInCategory="90"
+        app:showAsAction="always"
+        android:onClick="handleActionButton"/>
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:icon="@drawable/ic_settings_white_48dp"
+        android:orderInCategory="100"
+        app:showAsAction="always" />
+
 </menu>
