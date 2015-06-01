@@ -1,11 +1,13 @@
 package rocks.susurrus.susurrus.chat;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.app.Service;
 import android.util.Log;
 
 import rocks.susurrus.susurrus.chat.client.ReceiveMessage;
+import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
 
 /**
  * Android service.
@@ -15,9 +17,6 @@ import rocks.susurrus.susurrus.chat.client.ReceiveMessage;
 public class ReceiverService extends Service {
 
     private static final String LOG_TAG = "ReceiverService";
-
-    public ReceiverService() {
-    }
 
     @Override
     /**
@@ -34,25 +33,30 @@ public class ReceiverService extends Service {
      * Is called whenever an Activity requests the start of our service.
      */
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOG_TAG, "Service started ...");
+        Log.d(LOG_TAG, "Started ...");
 
         // start listening for messages send via socket using an AsyncTask
 
-        // force serial task execution to improve stability
-        Log.d(LOG_TAG, "... start listening for message from the server");
-        new ReceiveMessage().execute();
-       /* WifiDirectBroadcastReceiver mReceiver = WifiDirectBroadcastReceiver.createInstance();
+
+        //new ReceiveMessage().execute();
+        WiFiDirectBroadcastReceiver mReceiver = WiFiDirectBroadcastReceiver.getInstance();
 
         //Start the AsyncTask for the server to receive messages
-        if(mReceiver.isGroupeOwner() == WifiDirectBroadcastReceiver.IS_OWNER){
+        /*if(mReceiver.isGroupeOwner() == WifiDirectBroadcastReceiver.IS_OWNER){
+            // force serial task execution to improve stability
+
             Log.v(LOG_TAG, "Start the AsyncTask for the server to receive messages");
             new ReceiveMessageServer(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[])null);
         }
         else if(mReceiver.isGroupeOwner() == WifiDirectBroadcastReceiver.IS_CLIENT){
+            // force serial task execution to improve stability
+
             Log.v(LOG_TAG, "Start the AsyncTask for the client to receive messages");
             new ReceiveMessageClient(getApplicationContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[])null);
-        }
-        return START_STICKY;*/
+        }*/
+
+        Log.d(LOG_TAG, "... start listening for message from the server");
+
         return START_STICKY;
     }
 }
