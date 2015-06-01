@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">Susurrus</string>
 
+    <!-- Action bar -->
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_discover">Scannen</string>
+
 
     <!-- Intro Activity -->
     <string name="intro_activity">Intro Activity</string>
@@ -27,5 +30,6 @@
 
     <string name="intro_four_headline">Generiere</string>
     <string name="title_activity_chat">ChatActivity</string>
+    <string name="title_activity_create">CreateActivity</string>
 
 </resources>

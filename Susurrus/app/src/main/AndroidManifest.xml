@@ -19,7 +19,7 @@
         <!-- Services -->
         <service
             android:name=".chat.ReceiverService"
-            android:exported="false">
+            android:exported="false" >
         </service>
 
         <!-- Activities -->
@@ -40,7 +40,10 @@
             android:name=".ChatActivity"
             android:label="@string/title_activity_chat" >
         </activity>
-
+        <activity
+            android:name=".CreateActivity"
+            android:label="@string/title_activity_create" >
+        </activity>
     </application>
 
-    </manifest>
+</manifest>

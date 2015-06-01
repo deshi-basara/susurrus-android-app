@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -17,7 +16,6 @@ import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import rocks.susurrus.susurrus.chat.ReceiverService;
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
@@ -26,15 +24,13 @@ import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
 
 
 public class ChatActivity extends ActionBarActivity {
-
     private static final String LOG_TAG = "ChatActivity";
 
     // intent-filter for reacting on network changes
     private final IntentFilter mIntentFilter = new IntentFilter();
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private BroadcastReceiver mReceiver;
-
+    private WiFiDirectBroadcastReceiver mReceiver;
 
     // chat
     private MessageAdapter messageAdapter;
@@ -61,17 +57,25 @@ public class ChatActivity extends ActionBarActivity {
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         // register application with the WifiP2PManager
         mChannel = mManager.initialize(this, getMainLooper(), null);
-        // instance of the broadcast receiver
-        mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+        // get an instance of the broadcast receiver and set needed data
+        mReceiver = WiFiDirectBroadcastReceiver.getInstance();
+        mReceiver.setWifiManager(mManager);
+        mReceiver.setWifiChannel(mChannel);
+        mReceiver.setActivity(this);
 
         // start service for receiving messages
-        //startService(new Intent(this, ReceiverService.class));
+        startService(new Intent(this, ReceiverService.class));
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_chat, menu);
+
+        /*menu.findItem(R.id.action_search).setIcon(
+                new IconDrawable(this, Iconify.IconValue.fa_share)
+                        .colorRes(R.color.abc_primary_text_disable_only_material_dark)
+                        .actionBarSize());*/
         return true;
     }
 
@@ -115,7 +119,7 @@ public class ChatActivity extends ActionBarActivity {
 
         // set adapters
         messageAdapter = new MessageAdapter(getApplicationContext(),
-                R.layout.activity_chat_message);
+                R.layout.activity_chat_message_left);
         messageListView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
         messageListView.setAdapter(messageAdapter);
 
@@ -156,7 +160,7 @@ public class ChatActivity extends ActionBarActivity {
 
         // add message to the adapter
         MessageModel newMessage = new MessageModel(true, messageText);
-        //messageAdapter.add(newMessage);
+        messageAdapter.add(newMessage);
 
         return true;
     }
