@@ -163,10 +163,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     /**
      * Setter methods.
      */
-    public void setWifiManager(WifiP2pManager manager) {
+    public void setWifiDirectManager(WifiP2pManager manager) {
         this.wifiManager = manager;
     }
-    public void setWifiChannel(WifiP2pManager.Channel channel) {
+    public void setWifiDirectChannel(WifiP2pManager.Channel channel) {
         this.wifiChannel = channel;
     }
     public void setActivity(Activity activity) {

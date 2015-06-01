@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
@@ -34,7 +35,7 @@ public class MainActivity extends ActionBarActivity {
      */
     // intent-filter for reacting on network changes
     private final IntentFilter wifiIntentFilter = new IntentFilter();
-    private WifiP2pManager wifiManager;
+    private WifiP2pManager wifiDirectManager;
     private WifiP2pManager.Channel wifiChannel;
     private WiFiDirectBroadcastReceiver wifiReceiver;
 
@@ -63,6 +64,13 @@ public class MainActivity extends ActionBarActivity {
             Intent intentChat = new Intent(this, ChatActivity.class);
             startActivity(intentChat);
         }
+
+        /*WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        Log.d(LOG_TAG, "WifiState: " + wifi.getWifiState());
+
+        wifi.setWifiEnabled(false);
+
+        Log.d(LOG_TAG, "WifiState: " + wifi.getWifiState());*/
 
         setView();
         setWifi();
@@ -99,13 +107,13 @@ public class MainActivity extends ActionBarActivity {
         wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         // get an instance of the WifiP2PManager
-        wifiManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        wifiDirectManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         // register application with the WifiP2PManager
-        wifiChannel = wifiManager.initialize(this, getMainLooper(), null);
+        wifiChannel = wifiDirectManager.initialize(this, getMainLooper(), null);
         // get an instance of the broadcast receiver and set needed data
         wifiReceiver = WiFiDirectBroadcastReceiver.getInstance();
-        wifiReceiver.setWifiManager(wifiManager);
-        wifiReceiver.setWifiChannel(wifiChannel);
+        wifiReceiver.setWifiDirectManager(wifiDirectManager);
+        wifiReceiver.setWifiDirectChannel(wifiChannel);
         wifiReceiver.setActivity(this);
     }
 
@@ -140,13 +148,13 @@ public class MainActivity extends ActionBarActivity {
     private void discoverRooms() {
         Log.d(LOG_TAG, "Start discovering rooms ...");
 
-        wifiManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
+        wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
 
         // get an instance of the WifiP2P service request object
         WifiP2pDnsSdServiceRequest roomRequest = WifiP2pDnsSdServiceRequest.newInstance();
 
         // add a service discovery request
-        wifiManager.addServiceRequest(wifiChannel, roomRequest,
+        wifiDirectManager.addServiceRequest(wifiChannel, roomRequest,
                 new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
@@ -163,7 +171,7 @@ public class MainActivity extends ActionBarActivity {
         );
 
         // make the request
-        wifiManager.discoverServices(wifiChannel, new WifiP2pManager.ActionListener() {
+        wifiDirectManager.discoverServices(wifiChannel, new WifiP2pManager.ActionListener() {
 
                     @Override
                     public void onSuccess() {
@@ -196,7 +204,7 @@ public class MainActivity extends ActionBarActivity {
     };
 
     /**
-     * On receive listener: wifiManager.
+     * On receive listener: wifiDirectManager.
      * Callback invocation when Bonjour TXT record is available for a room.
      */
     private WifiP2pManager.DnsSdTxtRecordListener txtListener =
@@ -217,7 +225,7 @@ public class MainActivity extends ActionBarActivity {
     };
 
     /**
-     * On receive listener: wifiManager.
+     * On receive listener: wifiDirectManager.
      * Receives the actual description and connection information of a room.
      * The previous code snippet implemented a Map object to pair a device address with the buddy name. The service response listener uses this to link the DNS record with the corresponding service information
      */

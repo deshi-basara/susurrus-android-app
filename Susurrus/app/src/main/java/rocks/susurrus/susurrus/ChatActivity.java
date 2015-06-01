@@ -59,8 +59,8 @@ public class ChatActivity extends ActionBarActivity {
         mChannel = mManager.initialize(this, getMainLooper(), null);
         // get an instance of the broadcast receiver and set needed data
         mReceiver = WiFiDirectBroadcastReceiver.getInstance();
-        mReceiver.setWifiManager(mManager);
-        mReceiver.setWifiChannel(mChannel);
+        mReceiver.setWifiDirectManager(mManager);
+        mReceiver.setWifiDirectChannel(mChannel);
         mReceiver.setActivity(this);
 
         // start service for receiving messages
