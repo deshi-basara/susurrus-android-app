@@ -27,7 +27,7 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
 
     private TextView chatText;
 
-    private List<MessageModel> messageList = new ArrayList<>();
+    private List<MessageModel> messageList = new ArrayList<MessageModel>();
 
     /**
      * Class constructor.
@@ -76,6 +76,7 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
         // which message should be inserted
         MessageModel chatMessage = getItem(position);
 
+        // check if an existing view is being reused, otherwise inflate the view
         View row = convertView;
         if (row == null) {
             LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(
@@ -92,9 +93,11 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
             }
         }
 
+        // lookup view and populate it
         chatText = (TextView) row.findViewById(R.id.single_message_content);
         chatText.setText(chatMessage.message);
 
+        // return the completed view to render on screen
         return row;
     }
 
