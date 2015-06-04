@@ -1,13 +1,14 @@
 package rocks.susurrus.susurrus;
 
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -17,12 +18,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 
+import com.skyfishjy.library.RippleBackground;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.adapters.RoomAdapter;
+import rocks.susurrus.susurrus.models.RoomModel;
+import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.network.WifiDirectLocalService;
+import rocks.susurrus.susurrus.network.WifiDisconnector;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -37,17 +48,18 @@ public class MainActivity extends ActionBarActivity {
     private final IntentFilter wifiIntentFilter = new IntentFilter();
     private WifiP2pManager wifiDirectManager;
     private WifiP2pManager.Channel wifiChannel;
-    private WiFiDirectBroadcastReceiver wifiReceiver;
+    private WifiDirectBroadcastReceiver wifiReceiver;
+    private WifiDirectLocalService wifiDirectService;
 
     /**
      * Views
      */
     private FloatingActionButton createButton;
     private Button discoverButton;
-
-
-
-    final HashMap<String, String> buddies = new HashMap<String, String>();
+    private RelativeLayout emptyContainer;
+    private RelativeLayout roomsContainer;
+    private ListView roomsList;
+    private RippleBackground rippleBackground;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,15 +77,18 @@ public class MainActivity extends ActionBarActivity {
             startActivity(intentChat);
         }
 
-        /*WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        Log.d(LOG_TAG, "WifiState: " + wifi.getWifiState());
+        if(isAlreadyConnected()) {
+            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            Log.d(LOG_TAG, "Forcing disconnect");
 
-        wifi.setWifiEnabled(false);
+            wifiManager.disconnect();
 
-        Log.d(LOG_TAG, "WifiState: " + wifi.getWifiState());*/
+            WifiDisconnector disconnector = new WifiDisconnector(wifiManager);
+            registerReceiver(disconnector, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+        }
 
         setView();
-        setWifi();
+        setWifiDirect();
     }
 
     @Override
@@ -99,7 +114,34 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setWifi() {
+    /**
+     * Checks if the user is already connected to a wifi access point.
+     * @return True, if connected.
+     */
+    private boolean isAlreadyConnected() {
+        // get an instance of the wifi-manager and information of the current access point
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        SupplicantState supplicantState = wifiInfo.getSupplicantState();
+
+        // does the supplicant wifi-cli have a completed-state?
+        if(SupplicantState.COMPLETED.equals(supplicantState)) {
+            // completed state, connected to access point
+            Log.d(LOG_TAG, "Already connected to an access point");
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
+    /**
+     * Initiates all needed intentFilter, manager, channels and listener for wifi-direct
+     * usage.
+     */
+    private void setWifiDirect() {
         // set filter-actions, that will later be handled by the WiFiDirectBroadcastReceiver
         wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -111,19 +153,41 @@ public class MainActivity extends ActionBarActivity {
         // register application with the WifiP2PManager
         wifiChannel = wifiDirectManager.initialize(this, getMainLooper(), null);
         // get an instance of the broadcast receiver and set needed data
-        wifiReceiver = WiFiDirectBroadcastReceiver.getInstance();
+        wifiReceiver = WifiDirectBroadcastReceiver.getInstance();
         wifiReceiver.setWifiDirectManager(wifiDirectManager);
         wifiReceiver.setWifiDirectChannel(wifiChannel);
         wifiReceiver.setActivity(this);
+
+        // setup the wifi direct service
+        wifiDirectService = new WifiDirectLocalService(wifiDirectManager, wifiChannel);
+        wifiDirectService.discoverLocalServices();
+
+        Log.d(LOG_TAG, "WifiDirect set");
     }
 
     private void setView() {
         // get needed views
         createButton = (FloatingActionButton) findViewById(R.id.button_create);
         discoverButton = (Button) findViewById(R.id.action_discover);
+        emptyContainer = (RelativeLayout) findViewById(R.id.main_empty_container);
+        roomsContainer = (RelativeLayout) findViewById(R.id.main_rooms_container);
+        roomsList = (ListView) findViewById(R.id.main_rooms_list);
+        rippleBackground = (RippleBackground) findViewById(R.id.content);
 
         // set events
         createButton.setOnClickListener(createButtonListener);
+
+        // create adapter to convert the array to views
+        RoomAdapter roomAdapter = new RoomAdapter(getApplicationContext(),
+                R.layout.activity_main_room);
+        // attach the adapter to a ListView
+        roomsList.setAdapter(roomAdapter);
+
+        try {
+            roomAdapter.add(new RoomModel("Besitzer", InetAddress.getByName("127.0.0.1"), "Raum Name", "Freiheit", true));
+        } catch(UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -136,58 +200,11 @@ public class MainActivity extends ActionBarActivity {
 
         // which action button was clicked?
         if(actionButtonId == R.id.action_discover) {
-            discoverRooms();
+            rippleBackground.startRippleAnimation();
+            wifiDirectService.discoverLocalServices();
         }
 
         return true;
-    }
-
-    /**
-     * Starts the discovery of chat rooms.
-     */
-    private void discoverRooms() {
-        Log.d(LOG_TAG, "Start discovering rooms ...");
-
-        wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
-
-        // get an instance of the WifiP2P service request object
-        WifiP2pDnsSdServiceRequest roomRequest = WifiP2pDnsSdServiceRequest.newInstance();
-
-        // add a service discovery request
-        wifiDirectManager.addServiceRequest(wifiChannel, roomRequest,
-                new WifiP2pManager.ActionListener() {
-                @Override
-                public void onSuccess() {
-                    // Success!
-                    Log.d(LOG_TAG, "addServiceRequest success");
-                }
-
-                @Override
-                public void onFailure(int code) {
-                    // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                    Log.d(LOG_TAG, "addServiceRequest error: " + code);
-                }
-            }
-        );
-
-        // make the request
-        wifiDirectManager.discoverServices(wifiChannel, new WifiP2pManager.ActionListener() {
-
-                    @Override
-                    public void onSuccess() {
-                        // Success!
-                        Log.d(LOG_TAG, "Request made successfully");
-                    }
-
-                    @Override
-                    public void onFailure(int code) {
-                        // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                        if (code == WifiP2pManager.P2P_UNSUPPORTED) {
-                            Log.d(LOG_TAG, "P2P isn't supported on this device.");
-                        }
-                    }
-                }
-        );
     }
 
     /**
@@ -198,62 +215,9 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onClick(View v) {
             // open a new chat creation intent
-            Intent intentChat = new Intent(getApplicationContext(), CreateActivity.class);
-            startActivity(intentChat);
+            /*Intent intentChat = new Intent(getApplicationContext(), CreateActivity.class);
+            startActivity(intentChat);*/
+            wifiDirectService.setupLocalService();
         }
     };
-
-    /**
-     * On receive listener: wifiDirectManager.
-     * Callback invocation when Bonjour TXT record is available for a room.
-     */
-    private WifiP2pManager.DnsSdTxtRecordListener txtListener =
-            new WifiP2pManager.DnsSdTxtRecordListener() {
-
-                @Override
-                /* Callback includes:
-                 * fullDomain: full domain name: e.g "printer._ipp._tcp.local."
-                 * record: TXT record dta as a map of key/value pairs.
-                 * device: The device running the advertised service.
-                 */
-                public void onDnsSdTxtRecordAvailable(String fullDomainName, Map<String,
-                        String> txtRecordMap, WifiP2pDevice srcDevice) {
-
-                        Log.d(LOG_TAG, "DnsSdTxtRecord available -" + txtRecordMap.toString());
-                        buddies.put(srcDevice.deviceAddress, txtRecordMap.get("buddyname"));
-                }
-    };
-
-    /**
-     * On receive listener: wifiDirectManager.
-     * Receives the actual description and connection information of a room.
-     * The previous code snippet implemented a Map object to pair a device address with the buddy name. The service response listener uses this to link the DNS record with the corresponding service information
-     */
-    private WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager
-            .DnsSdServiceResponseListener() {
-        @Override
-        public void onDnsSdServiceAvailable(String instanceName, String registrationType,
-                                            WifiP2pDevice resourceType) {
-
-            // Update the device name with the human-friendly version from
-            // the DnsTxtRecord, assuming one arrived.
-            resourceType.deviceName = buddies
-                    .containsKey(resourceType.deviceAddress) ? buddies
-                    .get(resourceType.deviceAddress) : resourceType.deviceName;
-
-            // Add to the custom adapter defined specifically for showing
-            // wifi devices.
-            /*WiFiDirectServicesList fragment = (WiFiDirectServicesList) getFragmentManager()
-                    .findFragmentById(R.id.frag_peerlist);
-            WiFiDevicesAdapter adapter = ((WiFiDevicesAdapter) fragment
-                    .getListAdapter());
-
-            adapter.add(resourceType);
-            adapter.notifyDataSetChanged();*/
-            Log.d(LOG_TAG, "onBonjourServiceAvailable " + instanceName);
-        }
-    };
-
-
-
 }

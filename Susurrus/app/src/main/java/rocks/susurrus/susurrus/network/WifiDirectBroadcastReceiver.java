@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -16,17 +15,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import rocks.susurrus.susurrus.ChatActivity;
-
 /**
  * A BroadcastReceiver that notifies of important Wi-Fi p2p events.
  * Allow only one instance of the class by using the Singleton pattern.
  */
-public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
+public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     private static final String LOG_TAG = "WifiBroadcastReceiver";
 
     // singleton instance
-    private static WiFiDirectBroadcastReceiver singleInstance;
+    private static WifiDirectBroadcastReceiver singleInstance;
 
 
     private WifiP2pManager wifiManager;
@@ -38,7 +35,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     /**
      * Class constructor.
      */
-    protected WiFiDirectBroadcastReceiver() {
+    protected WifiDirectBroadcastReceiver() {
         super();
     }
 
@@ -46,11 +43,11 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
      * Maintains a static reference to the lone singleton instance and returns the reference from.
      * @return WifiDirectBroadcastReceiver instance
      */
-    public static WiFiDirectBroadcastReceiver getInstance() {
+    public static WifiDirectBroadcastReceiver getInstance() {
         // is there already an instance of the class?
         if(singleInstance == null) {
             // no instance, create one
-            singleInstance = new WiFiDirectBroadcastReceiver();
+            singleInstance = new WifiDirectBroadcastReceiver();
         }
 
         return singleInstance;
@@ -138,13 +135,13 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
         // Service information. Pass it an instance name, service type
         // _protocol._transportlayer, and the map containing
         // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo roomServiceInfo =
+        WifiP2pDnsSdServiceInfo roomInfo =
                 WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", roomData);
 
         // Add the local service, sending the service info, network channel,
         // and listener that will be used to indicate success or failure of
         // the request.
-        wifiManager.addLocalService(wifiChannel, roomServiceInfo, new WifiP2pManager.ActionListener() {
+        wifiManager.addLocalService(wifiChannel, roomInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 // Command successful! Code isn't necessarily needed here,
@@ -172,8 +169,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     public void setActivity(Activity activity) {
         this.baseActivity = activity;
     }
-
-
 
     /**
      * Custom listener called by mManager.requestPeers(...).
@@ -210,4 +205,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
             }
         }
     };
+
+
 }
