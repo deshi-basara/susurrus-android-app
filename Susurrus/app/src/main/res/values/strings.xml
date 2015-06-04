@@ -6,6 +6,15 @@
     <string name="action_settings">Einstellungen</string>
     <string name="action_discover">Scannen</string>
 
+    <!-- Main Activity -->
+    <string name="main_empty_headline">Keine Räume in deiner Nähe</string>
+    <string name="main_empty_desc">
+        Benutze den Refresh-Button um deine \n Umgebung
+        zu scannen.
+    </string>
+
+    <!-- Main Activity Room Item -->
+    <string name="main_room_owner_desc">von</string>
 
     <!-- Intro Activity -->
     <string name="intro_activity">Intro Activity</string>

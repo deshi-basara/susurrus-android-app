@@ -10,6 +10,11 @@
     <item name="white" type="color">#FEFEFE</item>
 
 
+    <item name="textheadline" type="color">#4D4D4D</item>
+    <item name="textnormal" type="color">#535353</item>
+    <item name="textlight" type="color">#A0A0A0</item>
+    <item name="darkblue" type="color">#3f51b5</item>
+
     <integer-array name="androidcolors">
         <item>@color/blue</item>
         <item>@color/purple</item>
@@ -18,6 +23,11 @@
         <item>@color/lighterpurple</item>
 
         <item>@color/background</item>
+
+        <item>@color/textheadline</item>
+        <item>@color/textlight</item>
+        <item>@color/textnormal</item>
+        <item>@color/darkblue</item>
     </integer-array>
 
 
