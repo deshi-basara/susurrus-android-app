@@ -71,7 +71,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
             android:textColor="@android:color/white"
-            android:drawableRight="@drawable/ic_navigate_next_white_18dp"
+            android:drawableRight="@drawable/next_24"
             />
 
         <Button
