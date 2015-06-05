@@ -1,12 +1,15 @@
 package rocks.susurrus.susurrus.network;
 
 import android.app.Activity;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +27,14 @@ public class WifiDirectLocalService {
     /**
      * Constants
      */
-    private final int SERVICE_PORT = 4040;
+    public static final int SERVICE_PORT = 4040;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
+
+    /**
+     * Singleton
+     */
+    private static WifiDirectLocalService singleInstance;
 
     /**
      * Networking
@@ -45,20 +53,42 @@ public class WifiDirectLocalService {
     HashMap<String, Map> availableDevices = new HashMap<String, Map>();
     private RoomAdapter roomAdapter;
 
-    public WifiDirectLocalService(WifiP2pManager m, WifiP2pManager.Channel c, MainActivity a,
-                                  RoomAdapter r) {
-        this.wifiDirectManager = m;
-        this.wifiChannel = c;
-        this.mainActivity = a;
-        this.roomAdapter = r;
+    /**
+     * Class constructur.
+     */
+    protected WifiDirectLocalService() { super(); }
 
-        Log.d(LOG_TAG, "wifiDirectService initiated.");
+    /**
+     * Maintains a static reference to the lone singleton instance and returns the reference from.
+     * @return WifiDirectLocalService instance
+     */
+    public static WifiDirectLocalService getInstance() {
+        // is there already an instance of the class?
+        if(singleInstance == null) {
+            // no instance, create one
+            singleInstance = new WifiDirectLocalService();
+        }
+
+        return singleInstance;
+    }
+
+    public void setWifiDirectManager(WifiP2pManager m) {
+        this.wifiDirectManager = m;
+    }
+    public void setWifiChannel(WifiP2pManager.Channel c) {
+        this.wifiChannel = c;
+    }
+    public void setMainActivity(MainActivity a) {
+        this.mainActivity = a;
+    }
+    public void setRoomAdapter(RoomAdapter r) {
+        this.roomAdapter = r;
     }
 
     /**
      * Setups an own local "susurrus"-service (which represents a chat room).
      */
-    public void setupLocalService() {
+    public void setupLocalService(Activity feedbackActivity, Map roomData) {
 
         //  Create a string map containing information about the room.
         Map record = new HashMap();
@@ -93,6 +123,27 @@ public class WifiDirectLocalService {
                 Log.d(LOG_TAG, "Error code: " + arg0);
             }
         });
+    }
+
+    public void connectToLocalService(String serviceAddress) {
+        WifiP2pConfig connectionConfig = new WifiP2pConfig();
+        connectionConfig.deviceAddress = serviceAddress;
+        connectionConfig.wps.setup = WpsInfo.PBC;
+
+        wifiDirectManager.connect(wifiChannel, connectionConfig, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
+                Log.d(LOG_TAG, "Connection to room established");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(LOG_TAG, "Connection to room failed: " + reason);
+            }
+        });
+
     }
 
     boolean listenerSet = false;
@@ -176,7 +227,7 @@ public class WifiDirectLocalService {
                 public void onDnsSdTxtRecordAvailable(String fullDomainName, Map<String,
                         String> txtRecordMap, WifiP2pDevice srcDevice) {
 
-                    Log.d(LOG_TAG, "DnsSdTxtRecord available: " + txtRecordMap.toString());
+                    Log.d(LOG_TAG, "DnsSdTxtRecord available: " + srcDevice.deviceAddress);
                     availableDevices.put(srcDevice.deviceAddress, txtRecordMap);
                 }
             };
@@ -192,12 +243,12 @@ public class WifiDirectLocalService {
         public void onDnsSdServiceAvailable(String instanceName, String registrationType,
                                             WifiP2pDevice resourceType) {
 
-            Log.d(LOG_TAG, "OnDnsSdServiceAvailable");
-            Log.d(LOG_TAG, "resourceType: " + resourceType.toString());
+            Log.d(LOG_TAG, "OnDnsSdServiceAvailable: " + resourceType.deviceAddress);
 
             // update the device name with the human-friendly version from
             // the DnsTxtRecord, assuming one arrived.
             if(availableDevices.containsKey(resourceType.deviceAddress)) {
+                Log.d(LOG_TAG, "Building new room ...");
 
                 Map roomData = availableDevices.get(resourceType.deviceAddress);
                 roomData.put("device", resourceType.deviceName);
@@ -221,7 +272,6 @@ public class WifiDirectLocalService {
                 // add to the adapter
                 roomAdapter.add(newRoom);
             }
-
 
             /*resourceType.deviceName = availableDevices
                     .containsKey(resourceType.deviceAddress) ? availableDevices
