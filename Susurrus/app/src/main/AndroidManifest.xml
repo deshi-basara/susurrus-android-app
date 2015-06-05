@@ -45,6 +45,7 @@
         <activity
             android:name=".ChatActivity"
             android:label="@string/title_activity_chat"
+            android:parentActivityName=".MainActivity"
             >
         </activity>
         <activity

@@ -121,7 +121,10 @@ public class ChatActivity extends ActionBarActivity {
         // setup actionBar
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle(actionTitle);
-        actionBar.setSubtitle("sub-title");
+        actionBar.setSubtitle("4 Teilnehmer");
+
+        // setup backButton
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     /**
