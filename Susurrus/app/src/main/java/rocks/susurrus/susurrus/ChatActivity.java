@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import rocks.susurrus.susurrus.chat.ReceiverService;
@@ -38,7 +39,7 @@ public class ChatActivity extends ActionBarActivity {
     // view
     private ListView messageListView;
     private EditText messageInputText;
-    private Button messageSendButton;
+    private ImageButton messageSendButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,7 +130,7 @@ public class ChatActivity extends ActionBarActivity {
     private void setView() {
         // get views
         messageListView = (ListView) findViewById(R.id.message_list_view);
-        messageSendButton = (Button) findViewById(R.id.message_send_button);
+        messageSendButton = (ImageButton) findViewById(R.id.message_send_button);
         messageInputText = (EditText) findViewById(R.id.message_input_text);
 
         // set adapters

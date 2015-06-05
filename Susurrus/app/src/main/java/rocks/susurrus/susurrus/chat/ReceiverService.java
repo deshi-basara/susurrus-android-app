@@ -1,13 +1,11 @@
 package rocks.susurrus.susurrus.chat;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.app.Service;
 import android.util.Log;
 
-import rocks.susurrus.susurrus.chat.client.ReceiveMessage;
-import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 
 /**
  * Android service.
@@ -39,7 +37,7 @@ public class ReceiverService extends Service {
 
 
         //new ReceiveMessage().execute();
-        WiFiDirectBroadcastReceiver mReceiver = WiFiDirectBroadcastReceiver.getInstance();
+        WifiDirectBroadcastReceiver mReceiver = WifiDirectBroadcastReceiver.getInstance();
 
         //Start the AsyncTask for the server to receive messages
         /*if(mReceiver.isGroupeOwner() == WifiDirectBroadcastReceiver.IS_OWNER){

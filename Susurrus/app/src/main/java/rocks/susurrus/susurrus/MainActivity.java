@@ -71,8 +71,9 @@ public class MainActivity extends ActionBarActivity {
             Intent intentIntro = new Intent(this, IntroActivity.class);
             startActivity(intentIntro);
         }
-        else if(false) {
-            Intent intentChat = new Intent(this, CreateActivity.class);
+        else if(true) {
+            Intent intentChat = new Intent(this, ChatActivity.class);
+            intentChat.putExtra("ROOM_NAME", "Simon@testing");
             startActivity(intentChat);
         }
 

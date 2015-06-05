@@ -21,41 +21,36 @@
         android:orientation="vertical"
         android:background="@color/white">
 
-        <android.widget.IconButton
-            android:text="{fa-camera}"
-            android:textColor="#FF33B5E5"
-            android:textSize="25dp"
+        <ImageButton
             android:layout_width="50dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:id="@+id/message_send_image"
-            android:layout_alignBottom="@+id/message_input_text"
-            android:layout_alignParentLeft="true"
-            android:background="@android:color/transparent" />
+            android:background="@android:color/transparent"
+            android:src="@drawable/compact_camera_24"
+            android:layout_centerVertical="true"
+            />
 
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:ems="10"
             android:id="@+id/message_input_text"
-            android:layout_marginLeft="50dp"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_toStartOf="@+id/message_send_image"
-            android:layout_toLeftOf="@+id/message_send_button" />
+            android:layout_toLeftOf="@+id/message_send_button"
+            android:layout_toRightOf="@+id/message_send_image"
+            android:layout_toEndOf="@+id/message_send_image"
+            android:layout_alignParentTop="true" />
 
-        <android.widget.IconButton
-            android:text="{fa-paper-plane-o}"
-            android:textColor="#FF33B5E5"
-            android:textSize="25dp"
+        <ImageButton
             android:layout_width="50dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:id="@+id/message_send_button"
-            android:layout_alignBottom="@+id/message_input_text"
+            android:background="@android:color/transparent"
+            android:src="@drawable/advance_24"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:background="@android:color/transparent" />
+            />
 
     </RelativeLayout>
 
