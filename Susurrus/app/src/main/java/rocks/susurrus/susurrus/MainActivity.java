@@ -1,15 +1,13 @@
 package rocks.susurrus.susurrus;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
@@ -17,17 +15,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.skyfishjy.library.RippleBackground;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
@@ -78,7 +72,7 @@ public class MainActivity extends ActionBarActivity {
             startActivity(intentIntro);
         }
         else if(false) {
-            Intent intentChat = new Intent(this, ChatActivity.class);
+            Intent intentChat = new Intent(this, CreateActivity.class);
             startActivity(intentChat);
         }
 
@@ -164,9 +158,11 @@ public class MainActivity extends ActionBarActivity {
         wifiReceiver.setActivity(this);
 
         // setup the wifi direct service
-        wifiDirectService = new WifiDirectLocalService(wifiDirectManager, wifiChannel, this,
-                roomAdapter);
-        wifiDirectService.discoverLocalServices();
+        wifiDirectService = WifiDirectLocalService.getInstance();
+        wifiDirectService.setWifiDirectManager(wifiDirectManager);
+        wifiDirectService.setWifiChannel(wifiChannel);
+        wifiDirectService.setMainActivity(this);
+        wifiDirectService.setRoomAdapter(roomAdapter);
 
         Log.d(LOG_TAG, "WifiDirect set");
     }
@@ -182,6 +178,7 @@ public class MainActivity extends ActionBarActivity {
 
         // set events
         createButton.setOnClickListener(createButtonListener);
+        roomsList.setOnItemClickListener(roomsListListener);
 
         // create adapter to convert the array to views
         roomAdapter = new RoomAdapter(getApplicationContext(),
@@ -192,11 +189,7 @@ public class MainActivity extends ActionBarActivity {
         // set empty view for our list
         roomsList.setEmptyView(emptyContainer);
 
-        /*try {
-            roomAdapter.add(new RoomModel("Besitzer", InetAddress.getByName("127.0.0.1"), "Raum Name", "Freiheit", true));
-        } catch(UnknownHostException e) {
-            e.printStackTrace();
-        }*/
+        //roomAdapter.add(new RoomModel("Besitzer", "127.0.0.1", "Raum Name", "Freiheit", "img", true));
     }
 
     /**
@@ -209,6 +202,7 @@ public class MainActivity extends ActionBarActivity {
 
         // which action button was clicked?
         if(actionButtonId == R.id.action_discover) {
+            roomAdapter.clear();
             rippleBackground.startRippleAnimation();
             wifiDirectService.discoverLocalServices();
         }
@@ -232,9 +226,32 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onClick(View v) {
             // open a new chat creation intent
-            /*Intent intentChat = new Intent(getApplicationContext(), CreateActivity.class);
-            startActivity(intentChat);*/
-            wifiDirectService.setupLocalService();
+            Intent intentChat = new Intent(getApplicationContext(), CreateActivity.class);
+            startActivity(intentChat);
+        }
+    };
+
+    /**
+     * On item click listener: roomsList.
+     * Opens a new chat modal, accordingly to the clicked item.
+     */
+    private AdapterView.OnItemClickListener roomsListListener = new AdapterView.
+            OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            new MaterialDialog.Builder(MainActivity.this)
+                    .title(R.string.main_dialog_headline)
+                    .content(R.string.main_dialog_content)
+                    .progress(true, 0)
+                    .negativeText(R.string.main_dialog_cancel)
+                    .show();
+
+            // get room deviceAddress and try to establish a connection
+            RoomModel clickedRoom = roomAdapter.getItem(position);
+            String clickedRoomAddr = clickedRoom.getOwnerAddr();
+            wifiDirectService.connectToLocalService(clickedRoomAddr);
+
+            Log.d(LOG_TAG, "Clicked deviceAddress: " + clickedRoom.getOwnerAddr());
         }
     };
 }

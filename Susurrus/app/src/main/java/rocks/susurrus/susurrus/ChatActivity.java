@@ -1,10 +1,10 @@
 package rocks.susurrus.susurrus;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,7 +20,7 @@ import android.widget.ListView;
 import rocks.susurrus.susurrus.chat.ReceiverService;
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
-import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 
 
 public class ChatActivity extends ActionBarActivity {
@@ -30,7 +30,7 @@ public class ChatActivity extends ActionBarActivity {
     private final IntentFilter mIntentFilter = new IntentFilter();
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private WiFiDirectBroadcastReceiver mReceiver;
+    private WifiDirectBroadcastReceiver mReceiver;
 
     // chat
     private MessageAdapter messageAdapter;
@@ -45,6 +45,7 @@ public class ChatActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        setAction();
         setView();
 
         // set filter-actions, that will later be handled by the WiFiDirectBroadcastReceiver
@@ -58,7 +59,7 @@ public class ChatActivity extends ActionBarActivity {
         // register application with the WifiP2PManager
         mChannel = mManager.initialize(this, getMainLooper(), null);
         // get an instance of the broadcast receiver and set needed data
-        mReceiver = WiFiDirectBroadcastReceiver.getInstance();
+        mReceiver = WifiDirectBroadcastReceiver.getInstance();
         mReceiver.setWifiDirectManager(mManager);
         mReceiver.setWifiDirectChannel(mChannel);
         mReceiver.setActivity(this);
@@ -106,6 +107,20 @@ public class ChatActivity extends ActionBarActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mReceiver);
+    }
+
+    /**
+     * Sets the actionBar's title accordingy to the handed chatRoom name.
+     */
+    private void setAction() {
+        // get intent and title value
+        Intent intent = getIntent();
+        String actionTitle = intent.getStringExtra("ROOM_NAME");
+
+        // setup actionBar
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle(actionTitle);
+        actionBar.setSubtitle("sub-title");
     }
 
     /**

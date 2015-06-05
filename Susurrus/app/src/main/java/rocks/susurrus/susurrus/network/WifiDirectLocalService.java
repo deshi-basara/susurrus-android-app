@@ -14,6 +14,7 @@ import android.widget.Toast;
 import java.util.HashMap;
 import java.util.Map;
 
+import rocks.susurrus.susurrus.CreateActivity;
 import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
@@ -88,23 +89,14 @@ public class WifiDirectLocalService {
     /**
      * Setups an own local "susurrus"-service (which represents a chat room).
      */
-    public void setupLocalService(Activity feedbackActivity, Map roomData) {
-
-        //  Create a string map containing information about the room.
-        Map record = new HashMap();
-        record.put("port", String.valueOf(SERVICE_PORT));
-        record.put("user_name", "John Doe" + (int) (Math.random() * 1000));
-        record.put("room_name", "Susurrus Test");
-        record.put("room_category", "Testing");
-        record.put("room_private", "true");
-        record.put("room_image", "img-url");
-        record.put("available", "visible");
+    public void setupLocalService(final CreateActivity feedbackActivity, Map roomData) {
+        Log.d(LOG_TAG, "Start registering a new room service ...");
 
         // Service information. Pass it an instance name, service type
         // _protocol._transportlayer, and the map containing
         // information other devices will want once they connect to this one.
         WifiP2pDnsSdServiceInfo roomInfo =
-                WifiP2pDnsSdServiceInfo.newInstance(SERVICE_NAME, SERVICE_TYPE, record);
+                WifiP2pDnsSdServiceInfo.newInstance(SERVICE_NAME, SERVICE_TYPE, roomData);
 
         // Add the local service, sending the service info, network channel,
         // and listener that will be used to indicate success or failure of
@@ -112,15 +104,15 @@ public class WifiDirectLocalService {
         wifiDirectManager.addLocalService(wifiChannel, roomInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                // Command successful! Code isn't necessarily needed here,
-                // Unless you want to update the UI or add logging statements.
-                Log.d(LOG_TAG, "Room created");
+                Log.d(LOG_TAG, "... service created.");
+                feedbackActivity.registerWifiRoomFeedback(false, 0);
             }
 
             @Override
-            public void onFailure(int arg0) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                Log.d(LOG_TAG, "Error code: " + arg0);
+            public void onFailure(int errorCode) {
+                // command failed, check for P2P_UNSUPPORTED, ERROR, or BUSY
+                Log.d(LOG_TAG, "... service error code: " + errorCode + ".");
+                feedbackActivity.registerWifiRoomFeedback(true, errorCode);
             }
         });
     }

@@ -86,7 +86,7 @@
             android:layout_alignLeft="@+id/create_room_name_container"
             android:layout_alignStart="@+id/create_room_name_container"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="-20dp"
+            android:layout_marginTop="-25dp"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="@string/create_room_category_error"
             android:textColor="@color/error"
@@ -133,6 +133,7 @@
                     />
 
                 <TextView
+                    android:id="@+id/create_encryption_activated_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
@@ -148,7 +149,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@color/white"
+                android:background="@color/darkblue"
                 >
 
                 <ImageView
@@ -161,10 +162,12 @@
                     />
 
                 <TextView
+                    android:id="@+id/create_encryption_disabled_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="@string/create_room_encryption_disabled"
+                    android:textColor="@color/white"
                     android:layout_alignParentBottom="true"
                     android:layout_centerHorizontal="true"
                     android:layout_marginBottom="10dp"
@@ -182,6 +185,7 @@
             android:layout_below="@+id/create_encryption_container"
             android:layout_alignLeft="@+id/create_encryption_container"
             android:layout_alignStart="@+id/create_encryption_container"
+            android:visibility="invisible"
             >
 
             <EditText

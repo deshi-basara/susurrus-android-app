@@ -3,6 +3,10 @@ package rocks.susurrus.susurrus.models;
 import android.util.Log;
 
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
+
+import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 
 /**
  * Data representation of one chat-room.
@@ -62,14 +66,36 @@ public class RoomModel {
     public String getOwnerName() {
         return this.ownerName;
     }
+    public String getOwnerAddr() { return this.ownerAddr; }
     public String getRoomName() {
         return this.roomName;
     }
     public String getRoomCategory() {
         return this.roomName;
     }
+
+    /**
+     * Converts our model to an HashMap (without password).
+     * @return Model attributes as HashMap.
+     */
+    public Map toHashMap() {
+        Map roomMap = new HashMap();
+        roomMap.put("port", String.valueOf(WifiDirectLocalService.SERVICE_PORT));
+        roomMap.put("user_name", "OWNER" + (int) (Math.random() * 1000));
+        roomMap.put("room_name", this.roomName);
+        roomMap.put("room_category", this.roomCategory);
+        roomMap.put("room_private", String.valueOf(roomEncrypted));
+        roomMap.put("room_image", this.roomImage);
+        roomMap.put("available", "visible");
+
+        return roomMap;
+    }
+
+    /**
+     * Returns if the room is encrypted.
+     * @return True, encrypted
+     */
     public boolean isRoomEncrypted() {
         return this.roomEncrypted;
     }
-
 }

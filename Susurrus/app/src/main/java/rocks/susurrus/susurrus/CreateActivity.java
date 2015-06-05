@@ -1,35 +1,67 @@
 package rocks.susurrus.susurrus;
 
-import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.transitions.everywhere.TransitionManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.wrapp.floatlabelededittext.FloatLabeledEditText;
 
-import rocks.susurrus.susurrus.network.WiFiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.models.RoomModel;
+import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 
 
 public class CreateActivity extends ActionBarActivity {
     private static final String LOG_TAG = "CreateActivity";
 
-    private final int SERVER_PORT = 4440;
+    /**
+     * Views
+     */
+    private ViewGroup startingScene;
+    private EditText roomNameInput;
+    private TextView roomNameInputError;
+    private EditText roomCategoryInput;
+    private TextView roomCategoryInputError;
+    private RelativeLayout roomEncryptionActived;
+    private RelativeLayout roomEncryptionDisabled;
+    private TextView roomEncryptionActivatedText;
+    private TextView roomEncryptionDisabledText;
+    private EditText roomPassword;
+    private TextView roomPasswordError;
+    private FloatLabeledEditText roomPasswordContainer;
+
+    /**
+     * Data
+     */
+    private boolean roomEncrypted = false;
+    private RoomModel roomData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create);
 
-        registerWifiRoom();
+        // add a backButton to the actionBar
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        setView();
+
+        //registerWifiRoom();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_create, menu);
+
         return true;
     }
 
@@ -41,25 +73,197 @@ public class CreateActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_room_done) {
+            Log.d(LOG_TAG, "Room done");
+
+            boolean everythingValid = validateWifiRoom();
+            if(everythingValid) {
+                // only create a room, if all input values were set
+                registerWifiRoom();
+            }
+
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void registerWifiRoom() {
-        Log.d(LOG_TAG, "Start registering new wifi room ...");
+    private void setView() {
+        // get default layout
+        startingScene = (ViewGroup) findViewById(R.id.create_room_container);
 
-        //  Create a string map containing information about the room.
-        Map record = new HashMap();
-        record.put("listenport", String.valueOf(SERVER_PORT));
-        record.put("buddyname", "John Doe" + (int) (Math.random() * 1000));
-        record.put("available", "visible");
+        // get needed views
+        roomNameInput = (EditText) findViewById(R.id.create_room_name);
+        roomNameInputError = (TextView) findViewById(R.id.create_room_name_error);
+        roomCategoryInput = (EditText) findViewById(R.id.create_room_category);
+        roomCategoryInputError = (TextView) findViewById(R.id.create_room_category_error);
+        roomEncryptionActived = (RelativeLayout) findViewById(R.id.create_encryption_activated);
+        roomEncryptionDisabled = (RelativeLayout) findViewById(R.id.create_encryption_disabled);
+        roomEncryptionActivatedText = (TextView) findViewById(
+                R.id.create_encryption_activated_text);
+        roomEncryptionDisabledText = (TextView) findViewById(R.id.create_encryption_disabled_text);
+        roomPassword = (EditText) findViewById(R.id.create_encryption_password);
+        roomPasswordError = (TextView) findViewById(R.id.create_room_encryption_error);
+        roomPasswordContainer = (FloatLabeledEditText) findViewById(
+                R.id.create_encryption_password_container);
 
-        WiFiDirectBroadcastReceiver mReceiver = WiFiDirectBroadcastReceiver.getInstance();
-        mReceiver.createNewRoom(record);
+        // set events
+        roomEncryptionActived.setOnClickListener(encryptionActivatedListener);
+        roomEncryptionDisabled.setOnClickListener(encryptionDisabledListener);
+     }
 
-        Log.d(LOG_TAG, "... registered.");
+    /**
+     * Validates if all needed input values were set.
+     * Starts an error-feedback transition if not.
+     * @return True, every input was valid.
+     */
+    private boolean validateWifiRoom() {
+        int errorCounter = 0;
+
+        // get form values
+        String roomNameValue = roomNameInput.getText().toString().trim();
+        String roomCategoryValue = roomCategoryInput.getText().toString().trim();
+
+        // validate input
+        if(roomNameValue.isEmpty()) {
+            showError(roomNameInputError);
+            errorCounter++;
+        }
+        else {
+            hideError(roomNameInputError);
+        }
+
+        if(roomCategoryValue.isEmpty()) {
+            showError(roomCategoryInputError);
+            errorCounter++;
+        }
+        else {
+            hideError(roomCategoryInputError);
+        }
+
+        if(roomCategoryValue.isEmpty()) {
+            showError(roomCategoryInputError);
+            errorCounter++;
+        }
+        else {
+            hideError(roomCategoryInputError);
+        }
+
+        // if encryption was specified
+        String roomPasswordValue = "";
+        if(roomEncrypted) {
+            roomPasswordValue = roomPassword.getText().toString().trim();
+
+            if(roomPasswordValue.isEmpty()) {
+                showError(roomPasswordError);
+                errorCounter++;
+            }
+            else {
+                hideError(roomPasswordError);
+            }
+        }
+
+        // did we have errors?
+        if(errorCounter > 0) {
+            // there were errors
+            return false;
+        }
+        else {
+            // everything valid, create a new RoomModel
+            roomData = new RoomModel("OWNER", "OWNER_ADDRESS", roomNameValue, roomCategoryValue,
+                    "ROOM_IMAGE", roomEncrypted);
+            if(roomEncrypted) {
+                roomData.setPassword(roomPasswordValue);
+            }
+
+            return true;
+        }
     }
+
+    /**
+     * Starts an error-transition for the handed TextView.
+     * @param errorTextView TextView we want to show an error.
+     */
+    private void showError(TextView errorTextView) {
+        TransitionManager.beginDelayedTransition(startingScene);
+        errorTextView.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Undos an error-transition for the handed TextView.
+     * @param errorTextView TextView we want to show an error.
+     */
+    private void hideError(TextView errorTextView) {
+        TransitionManager.beginDelayedTransition(startingScene);
+        errorTextView.setVisibility(View.INVISIBLE);
+    }
+
+    /**
+     * Creates a hashMap with all entered room-data.
+     * Hands the hashMap to the WifiDirectLocalService for registering the new room service.
+     */
+    private void registerWifiRoom() {
+        WifiDirectLocalService wifiDirectService = WifiDirectLocalService.getInstance();
+        wifiDirectService.setupLocalService(this, roomData.toHashMap());
+    }
+
+    public void registerWifiRoomFeedback(boolean hasError, int errorCode) {
+        Log.d(LOG_TAG, "Feedback for 'registrerWifiRoomFeedback' called: " + hasError);
+
+        // no errors
+        if(!hasError) {
+            // open the newly created chat room
+            Intent chatIntent = new Intent(this, ChatActivity.class);
+            chatIntent.putExtra("ROOM_NAME", roomData.getRoomName());
+
+            startActivity(chatIntent);
+        }
+    }
+
+    /**
+     * OnClickListener: roomEncryptionActivated.
+     * Executed if the user touches the "encryption-activated"-layout.
+     */
+    private View.OnClickListener encryptionActivatedListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            roomEncrypted = true;
+
+            Log.d(LOG_TAG, "Room encrypted: " + String.valueOf(roomEncrypted));
+
+            // mark element as 'active'
+            TransitionManager.beginDelayedTransition(startingScene);
+            roomEncryptionDisabled.setBackgroundColor(getResources().getColor(R.color.white));
+            roomEncryptionDisabledText.setTextColor(getResources().getColor(R.color.textheadline));
+            roomEncryptionActived.setBackgroundColor(getResources().getColor(R.color.darkblue));
+            roomEncryptionActivatedText.setTextColor(getResources().getColor(R.color.white));
+
+            // show password input
+            roomPasswordContainer.setVisibility(View.VISIBLE);
+        }
+    };
+
+    /**
+     * OnClickListener: roomEncryptionDisabled.
+     * Executed if the user touches the "encryption-disabled"-layout.
+     */
+    private View.OnClickListener encryptionDisabledListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            roomEncrypted = false;
+
+            Log.d(LOG_TAG, "Room encrypted: " + String.valueOf(roomEncrypted));
+
+            // mark element as 'active'
+            TransitionManager.beginDelayedTransition(startingScene);
+            roomEncryptionDisabled.setBackgroundColor(getResources().getColor(R.color.darkblue));
+            roomEncryptionDisabledText.setTextColor(getResources().getColor(R.color.white));
+
+            roomEncryptionActived.setBackgroundColor(getResources().getColor(R.color.white));
+            roomEncryptionActivatedText.setTextColor(getResources().getColor(R.color.textheadline));
+
+            // hide password input
+            roomPasswordContainer.setVisibility(View.INVISIBLE);
+        }
+    };
 }
