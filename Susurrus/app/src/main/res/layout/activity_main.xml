@@ -69,12 +69,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/main_rooms_container"
-        android:visibility="invisible">
+        android:visibility="visible">
 
         <ListView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/main_rooms_list" />
+            android:id="@+id/main_rooms_list"
+            android:divider="@null"
+            android:dividerHeight="0dp" />
     </RelativeLayout>
 
 
