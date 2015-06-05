@@ -14,7 +14,7 @@
             android:id="@+id/profile_image"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:src="@drawable/profile"
+            android:src="@drawable/profile_night_portrait_96"
             app:border_width="2dp"
             app:border_color="@color/white"/>
 
