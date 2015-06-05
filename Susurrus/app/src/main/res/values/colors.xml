@@ -15,6 +15,8 @@
     <item name="textlight" type="color">#A0A0A0</item>
     <item name="darkblue" type="color">#3f51b5</item>
 
+    <item name="error" type="color">#d50000</item>
+
     <integer-array name="androidcolors">
         <item>@color/blue</item>
         <item>@color/purple</item>
@@ -28,6 +30,8 @@
         <item>@color/textlight</item>
         <item>@color/textnormal</item>
         <item>@color/darkblue</item>
+
+        <item>@color/error</item>
     </integer-array>
 
 

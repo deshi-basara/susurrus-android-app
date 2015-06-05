@@ -2,6 +2,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="rocks.susurrus.susurrus.CreateActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
+
+    <!-- Action buttons -->
+    <item
+        android:id="@+id/action_room_done"
+        android:title="@string/action_room_done"
+        android:text="@string/action_room_done"
+        app:showAsAction="always|withText" />
+
 </menu>

@@ -16,6 +16,14 @@
     <!-- Main Activity Room Item -->
     <string name="main_room_owner_desc">von</string>
 
+    <!-- Main Activity Connection Dialog -->
+    <string name="main_dialog_headline">Verbinde mit Chat</string>
+    <string name="main_dialog_content">
+        Einen kleinen Moment Geduld bitte ...
+    </string>
+    <string name="main_dialog_cancel">Abbrechen</string>
+
+
     <!-- Intro Activity -->
     <string name="intro_activity">Intro Activity</string>
     <string name="intro_welcome">
@@ -40,5 +48,22 @@
     <string name="intro_four_headline">Generiere</string>
     <string name="title_activity_chat">ChatActivity</string>
     <string name="title_activity_create">CreateActivity</string>
+
+
+
+    <!-- Create Activity -->
+    <string name="create_activity">Raum erstellen</string>
+    <string name="create_room_name_hint">Raum Name</string>
+    <string name="create_room_name_error">Kein gültiger Raumname: Aa-Zz erlaubt.</string>
+    <string name="create_room_category_hint">Raum Thema, z.B. "Datenschutz"</string>
+    <string name="create_room_category_error">Kein gültiges Thema: Aa-Zz erlaubt.</string>
+    <string name="create_room_encryption_headline">Schutz</string>
+    <string name="create_room_encryption_active">Privat</string>
+    <string name="create_room_encryption_disabled">Öffentlich</string>
+    <string name="create_room_encryption">Passwort</string>
+    <string name="create_room_encryption_error">Kein gültiges Passwort eingegeben.</string>
+    <string name="action_room_done">Fertig</string>
+
+
 
 </resources>
