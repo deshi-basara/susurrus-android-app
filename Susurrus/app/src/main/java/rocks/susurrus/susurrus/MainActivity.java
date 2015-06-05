@@ -61,6 +61,11 @@ public class MainActivity extends ActionBarActivity {
     private ListView roomsList;
     private RippleBackground rippleBackground;
 
+    /**
+     * Data
+     */
+    private RoomAdapter roomAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,7 +164,8 @@ public class MainActivity extends ActionBarActivity {
         wifiReceiver.setActivity(this);
 
         // setup the wifi direct service
-        wifiDirectService = new WifiDirectLocalService(wifiDirectManager, wifiChannel);
+        wifiDirectService = new WifiDirectLocalService(wifiDirectManager, wifiChannel, this,
+                roomAdapter);
         wifiDirectService.discoverLocalServices();
 
         Log.d(LOG_TAG, "WifiDirect set");
@@ -178,16 +184,19 @@ public class MainActivity extends ActionBarActivity {
         createButton.setOnClickListener(createButtonListener);
 
         // create adapter to convert the array to views
-        RoomAdapter roomAdapter = new RoomAdapter(getApplicationContext(),
+        roomAdapter = new RoomAdapter(getApplicationContext(),
                 R.layout.activity_main_room);
         // attach the adapter to a ListView
         roomsList.setAdapter(roomAdapter);
 
-        try {
+        // set empty view for our list
+        roomsList.setEmptyView(emptyContainer);
+
+        /*try {
             roomAdapter.add(new RoomModel("Besitzer", InetAddress.getByName("127.0.0.1"), "Raum Name", "Freiheit", true));
         } catch(UnknownHostException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     /**
@@ -205,6 +214,14 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return true;
+    }
+
+    public void updateRoomsUi() {
+        rippleBackground.stopRippleAnimation();
+    }
+
+    public void updateRooms() {
+
     }
 
     /**

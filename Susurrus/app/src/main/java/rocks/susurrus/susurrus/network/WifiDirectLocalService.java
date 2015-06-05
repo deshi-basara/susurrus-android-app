@@ -1,13 +1,19 @@
 package rocks.susurrus.susurrus.network;
 
+import android.app.Activity;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
+import android.os.Handler;
 import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import rocks.susurrus.susurrus.MainActivity;
+import rocks.susurrus.susurrus.adapters.RoomAdapter;
+import rocks.susurrus.susurrus.models.RoomModel;
 
 /**
  * Created by simon on 04.06.15.
@@ -28,11 +34,23 @@ public class WifiDirectLocalService {
     private WifiP2pManager wifiDirectManager;
     private WifiP2pManager.Channel wifiChannel;
 
-    final HashMap<String, String> buddies = new HashMap<String, String>();
+    /**
+     * Ui
+     */
+    private MainActivity mainActivity;
 
-    public WifiDirectLocalService(WifiP2pManager m, WifiP2pManager.Channel c) {
+    /**
+     * Data
+     */
+    HashMap<String, Map> availableDevices = new HashMap<String, Map>();
+    private RoomAdapter roomAdapter;
+
+    public WifiDirectLocalService(WifiP2pManager m, WifiP2pManager.Channel c, MainActivity a,
+                                  RoomAdapter r) {
         this.wifiDirectManager = m;
         this.wifiChannel = c;
+        this.mainActivity = a;
+        this.roomAdapter = r;
 
         Log.d(LOG_TAG, "wifiDirectService initiated.");
     }
@@ -48,7 +66,7 @@ public class WifiDirectLocalService {
         record.put("user_name", "John Doe" + (int) (Math.random() * 1000));
         record.put("room_name", "Susurrus Test");
         record.put("room_category", "Testing");
-        record.put("room_private", true);
+        record.put("room_private", "true");
         record.put("room_image", "img-url");
         record.put("available", "visible");
 
@@ -77,13 +95,19 @@ public class WifiDirectLocalService {
         });
     }
 
+    boolean listenerSet = false;
+
     /**
      * Starts the discovery of local "susurrus"-services.
      */
     public void discoverLocalServices() {
         Log.d(LOG_TAG, "Start discovering rooms ...");
 
-        wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
+        if(!listenerSet) {
+            wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
+            listenerSet = true;
+            Log.d(LOG_TAG, "ListenerSet");
+        }
 
         // get an instance of the WifiP2P service request object
         WifiP2pDnsSdServiceRequest roomRequest = WifiP2pDnsSdServiceRequest.newInstance();
@@ -94,7 +118,7 @@ public class WifiDirectLocalService {
                     @Override
                     public void onSuccess() {
                         // Success!
-                        Log.d(LOG_TAG, "addServiceRequest success");
+                        Log.d(LOG_TAG, "... wifiDirectManager.addServiceRequest success ...");
                     }
 
                     @Override
@@ -111,7 +135,16 @@ public class WifiDirectLocalService {
                     @Override
                     public void onSuccess() {
                         // Success!
-                        Log.d(LOG_TAG, "DiscoverServices successfully");
+                        Log.d(LOG_TAG, "... wifiDirectManager.discoverServices success.");
+
+                        // delay feedback execution
+                        Handler updateHandler = new Handler();
+                        updateHandler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mainActivity.updateRoomsUi();
+                            }
+                        }, 10000);
                     }
 
                     @Override
@@ -143,8 +176,8 @@ public class WifiDirectLocalService {
                 public void onDnsSdTxtRecordAvailable(String fullDomainName, Map<String,
                         String> txtRecordMap, WifiP2pDevice srcDevice) {
 
-                    Log.d(LOG_TAG, "DnsSdTxtRecord available -" + txtRecordMap.toString());
-                    buddies.put(srcDevice.deviceAddress, txtRecordMap.get("buddyname"));
+                    Log.d(LOG_TAG, "DnsSdTxtRecord available: " + txtRecordMap.toString());
+                    availableDevices.put(srcDevice.deviceAddress, txtRecordMap);
                 }
             };
 
@@ -160,11 +193,38 @@ public class WifiDirectLocalService {
                                             WifiP2pDevice resourceType) {
 
             Log.d(LOG_TAG, "OnDnsSdServiceAvailable");
+            Log.d(LOG_TAG, "resourceType: " + resourceType.toString());
 
-            // Update the device name with the human-friendly version from
+            // update the device name with the human-friendly version from
             // the DnsTxtRecord, assuming one arrived.
-            resourceType.deviceName = buddies
-                    .containsKey(resourceType.deviceAddress) ? buddies
+            if(availableDevices.containsKey(resourceType.deviceAddress)) {
+
+                Map roomData = availableDevices.get(resourceType.deviceAddress);
+                roomData.put("device", resourceType.deviceName);
+
+                // fetch needed data
+                String roomOwner = (String) roomData.get("user_name");
+                String ownerAddr = resourceType.deviceAddress;
+                String roomName = (String) roomData.get("room_name");
+                String roomCategory = (String) roomData.get("room_category");
+                String roomImage = (String) roomData.get("room_image");
+
+                boolean roomEncrypted = false;
+                if(roomData.get("room_private").equals("true")) {
+                    roomEncrypted = true;
+                }
+
+                // create a new RoomModel for the discovered service.
+                RoomModel newRoom = new RoomModel(roomOwner, ownerAddr, roomName, roomCategory,
+                        roomImage, roomEncrypted);
+
+                // add to the adapter
+                roomAdapter.add(newRoom);
+            }
+
+
+            /*resourceType.deviceName = availableDevices
+                    .containsKey(resourceType.deviceAddress) ? availableDevices
                     .get(resourceType.deviceAddress) : resourceType.deviceName;
 
             // Add to the custom adapter defined specifically for showing

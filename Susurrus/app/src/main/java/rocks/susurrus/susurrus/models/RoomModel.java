@@ -14,13 +14,14 @@ public class RoomModel {
      * Networking
      */
     private String ownerName;
-    private InetAddress ownerAddr;
+    private String ownerAddr;
 
     /**
      * Attributes
      */
     private String roomName;
     private String roomCategory;
+    private String roomImage;
     private boolean roomEncrypted;
     private int roomMembers;
 
@@ -36,14 +37,16 @@ public class RoomModel {
      * @param ownerAddr
      * @param roomName
      * @param roomCategory
+     * @param roomImage
      * @param roomEncrypted
      */
-    public RoomModel(String ownerName, InetAddress ownerAddr, String roomName, String roomCategory,
-                     boolean roomEncrypted) {
+    public RoomModel(String ownerName, String ownerAddr, String roomName, String roomCategory,
+                     String roomImage, boolean roomEncrypted) {
         this.ownerName = ownerName;
         this.ownerAddr = ownerAddr;
         this.roomName = roomName;
         this.roomCategory = roomCategory;
+        this.roomImage = roomImage;
         this.roomEncrypted = roomEncrypted;
 
         Log.d(LOG_TAG, "New room added: " + this.roomName);

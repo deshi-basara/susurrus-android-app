@@ -39,9 +39,17 @@ public class RoomAdapter extends ArrayAdapter<RoomModel> {
      * @param room One room model
      */
     public void add(RoomModel room) {
-        Log.d(LOG_TAG, "Adding room");
+        Log.d(LOG_TAG, "Adding new room.");
         roomList.add(room);
         super.add(room);
+    }
+
+    /**
+     * Clears the current roomList.
+     */
+    public void clear() {
+        Log.d(LOG_TAG, "Clearing room list.");
+        roomList.clear();
     }
 
     /**
