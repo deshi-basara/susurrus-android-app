@@ -111,7 +111,16 @@ public class WifiDirectLocalService {
             @Override
             public void onFailure(int errorCode) {
                 // command failed, check for P2P_UNSUPPORTED, ERROR, or BUSY
-                Log.d(LOG_TAG, "... service error code: " + errorCode + ".");
+                if(errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
+                    Log.d(LOG_TAG, "... service error code: P2P_UNSUPPORTED");
+                }
+                else if(errorCode == WifiP2pManager.ERROR) {
+                    Log.d(LOG_TAG, "... service error code: ERROR");
+                }
+                else if(errorCode == WifiP2pManager.BUSY) {
+                    Log.d(LOG_TAG, "... service error code: BUSY");
+                }
+
                 feedbackActivity.registerWifiRoomFeedback(true, errorCode);
             }
         });
@@ -138,19 +147,11 @@ public class WifiDirectLocalService {
 
     }
 
-    boolean listenerSet = false;
 
-    /**
-     * Starts the discovery of local "susurrus"-services.
-     */
-    public void discoverLocalServices() {
-        Log.d(LOG_TAG, "Start discovering rooms ...");
+    public void setupLocalServiceDiscovery() {
+        Log.d(LOG_TAG, "Setup discovering rooms.");
 
-        if(!listenerSet) {
-            wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
-            listenerSet = true;
-            Log.d(LOG_TAG, "ListenerSet");
-        }
+        wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
 
         // get an instance of the WifiP2P service request object
         WifiP2pDnsSdServiceRequest roomRequest = WifiP2pDnsSdServiceRequest.newInstance();
@@ -162,6 +163,8 @@ public class WifiDirectLocalService {
                     public void onSuccess() {
                         // Success!
                         Log.d(LOG_TAG, "... wifiDirectManager.addServiceRequest success ...");
+
+                        discoverLocalServices();
                     }
 
                     @Override
@@ -171,6 +174,13 @@ public class WifiDirectLocalService {
                     }
                 }
         );
+    }
+
+    /**
+     * Starts the discovery of local "susurrus"-services.
+     */
+    public void discoverLocalServices() {
+        Log.d(LOG_TAG, "Start discovering rooms ...");
 
         // make the request
         wifiDirectManager.discoverServices(wifiChannel, new WifiP2pManager.ActionListener() {

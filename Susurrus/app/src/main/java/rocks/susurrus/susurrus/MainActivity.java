@@ -71,7 +71,7 @@ public class MainActivity extends ActionBarActivity {
             Intent intentIntro = new Intent(this, IntroActivity.class);
             startActivity(intentIntro);
         }
-        else if(true) {
+        else if(false) {
             Intent intentChat = new Intent(this, ChatActivity.class);
             intentChat.putExtra("ROOM_NAME", "Simon@testing");
             startActivity(intentChat);
@@ -114,6 +114,20 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /* register the broadcast receiver with the intent values to be matched */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // register our broadcast receiver, which is called when an intentFilter matches
+        registerReceiver(wifiReceiver, wifiIntentFilter);
+    }
+    /* unregister the broadcast receiver */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(wifiReceiver);
+    }
+
     /**
      * Checks if the user is already connected to a wifi access point.
      * @return True, if connected.
@@ -136,7 +150,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-
     /**
      * Initiates all needed intentFilter, manager, channels and listener for wifi-direct
      * usage.
@@ -152,6 +165,7 @@ public class MainActivity extends ActionBarActivity {
         wifiDirectManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         // register application with the WifiP2PManager
         wifiChannel = wifiDirectManager.initialize(this, getMainLooper(), null);
+
         // get an instance of the broadcast receiver and set needed data
         wifiReceiver = WifiDirectBroadcastReceiver.getInstance();
         wifiReceiver.setWifiDirectManager(wifiDirectManager);
@@ -165,7 +179,12 @@ public class MainActivity extends ActionBarActivity {
         wifiDirectService.setMainActivity(this);
         wifiDirectService.setRoomAdapter(roomAdapter);
 
-        Log.d(LOG_TAG, "WifiDirect set");
+        wifiDirectService.setupLocalServiceDiscovery();
+
+        // search for available rooms
+        //wifiDirectService.discoverLocalServices();
+
+        Log.d(LOG_TAG, "WifiDirect initiated.");
     }
 
     private void setView() {
