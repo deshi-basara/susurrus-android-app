@@ -95,7 +95,7 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
 
         // lookup view and populate it
         chatText = (TextView) row.findViewById(R.id.single_message_content);
-        chatText.setText(chatMessage.message);
+        chatText.setText(chatMessage.getMessage());
 
         // return the completed view to render on screen
         return row;

@@ -7,10 +7,12 @@ import android.content.Intent;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.util.Log;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +27,20 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     // singleton instance
     private static WifiDirectBroadcastReceiver singleInstance;
 
-
+    /**
+     * Attributes
+     */
     private WifiP2pManager wifiManager;
     private WifiP2pManager.Channel wifiChannel;
     private Activity baseActivity;
 
+    /**
+     * Data
+     */
     private List peers = new ArrayList();
+    private boolean isMaster = true;
+    private InetAddress masterAddress;
+
 
     /**
      * Class constructor.
@@ -70,7 +80,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
         // Respond to peer-list changes
         else if(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // Call WifiP2pManager.requestPeers() to get a list of current peers
-            Log.d(LOG_TAG, "WIFI_P2P_PEERS_CHANGED_ACTION");
+            /*Log.d(LOG_TAG, "WIFI_P2P_PEERS_CHANGED_ACTION");
 
             // request available peers from the wifi p2p manager. This is an
             // asynchronous call and the calling activity is notified with a
@@ -81,12 +91,12 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
             }
             else {
                 Log.d(LOG_TAG, "mManager is empty");
-            }
+            }*/
         }
 
         // Respond to new connection or disconnections
         else if(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-            Log.d(LOG_TAG, "WIFI_P2P_CONNECTION_CHANGED_ACTION");
+            Log.d(LOG_TAG, "WIFI_P2P_CONNECTION_CHANGED_ACTION: New connection.");
 
             // broadcast received before having a valid wifiManager instance?
             if(this.wifiManager == null) {
@@ -97,6 +107,33 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                 NetworkInfo networkInfo = (NetworkInfo) intent
                         .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
+                Log.d(LOG_TAG, "networkInfo: " + networkInfo.isConnected());
+
+                if(networkInfo.isConnected()){
+                    this.wifiManager.requestConnectionInfo(wifiChannel, new WifiP2pManager.ConnectionInfoListener() {
+
+                        @Override
+                        public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                            masterAddress = info.groupOwnerAddress;
+
+                            Log.d(LOG_TAG, "Group owner address: " + masterAddress);
+                            Log.d(LOG_TAG, "Group formed: " + info.groupFormed);
+                            Log.d(LOG_TAG, "Group owner: " + info.isGroupOwner);
+
+                            // is our user the chat-room owner?
+                            if(info.groupFormed && info.isGroupOwner) {
+                                // is owner, mark the user as owner create a server instance
+                                isMaster = true;
+                            }
+                            // not the chat-room owner, has to be a client instead
+                            else if(info.groupFormed) {
+                                isMaster = false;
+                            }
+
+                            Log.d(LOG_TAG, "IsServer: " + isMaster);
+                        }
+                    });
+                }
 
             }
 
@@ -131,31 +168,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    public void createNewRoom(Map roomData) {
-        // Service information. Pass it an instance name, service type
-        // _protocol._transportlayer, and the map containing
-        // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo roomInfo =
-                WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", roomData);
 
-        // Add the local service, sending the service info, network channel,
-        // and listener that will be used to indicate success or failure of
-        // the request.
-        wifiManager.addLocalService(wifiChannel, roomInfo, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Command successful! Code isn't necessarily needed here,
-                // Unless you want to update the UI or add logging statements.
-                Log.d(LOG_TAG, "Room created");
-            }
-
-            @Override
-            public void onFailure(int arg0) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                Log.d(LOG_TAG, "Error code: " + arg0);
-            }
-        });
-    }
 
     /**
      * Setter methods.
@@ -168,6 +181,14 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     }
     public void setActivity(Activity activity) {
         this.baseActivity = activity;
+    }
+
+    public InetAddress getMasterAddress() {
+        return this.masterAddress;
+    }
+
+    public boolean isMaster() {
+        return this.isMaster;
     }
 
     /**
@@ -183,7 +204,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
          * Is called after peer scan was completed.
          */
         public void onPeersAvailable(WifiP2pDeviceList peerList) {
-            Log.d(LOG_TAG, "onPeersAvailable");
+            /*Log.d(LOG_TAG, "onPeersAvailable");
 
             // Out with the old, in with the new.
             peers.clear();
@@ -202,7 +223,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 
                     Log.d(LOG_TAG, "DeviceName: " + deviceName);
                 }
-            }
+            }*/
         }
     };
 

@@ -1,14 +1,18 @@
 package rocks.susurrus.susurrus;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -28,7 +32,8 @@ import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 import rocks.susurrus.susurrus.network.WifiDisconnector;
-
+import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.services.WifiDirectService.InstanceBinder;
 
 public class MainActivity extends ActionBarActivity {
     private static final String LOG_TAG = "MainActivity";
@@ -43,7 +48,10 @@ public class MainActivity extends ActionBarActivity {
     private WifiP2pManager wifiDirectManager;
     private WifiP2pManager.Channel wifiChannel;
     private WifiDirectBroadcastReceiver wifiReceiver;
-    private WifiDirectLocalService wifiDirectService;
+    //private WifiDirectLocalService wifiDirectService;
+
+    private WifiDirectService wifiDirectService;
+    private boolean isWifiDirectServiceBound;
 
     /**
      * Views
@@ -54,6 +62,7 @@ public class MainActivity extends ActionBarActivity {
     private RelativeLayout roomsContainer;
     private ListView roomsList;
     private RippleBackground rippleBackground;
+    private MaterialDialog roomJoinDialog;
 
     /**
      * Data
@@ -87,8 +96,15 @@ public class MainActivity extends ActionBarActivity {
             registerReceiver(disconnector, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
         }
 
+
+
         setView();
-        setWifiDirect();
+        //setWifiDirect();
+
+        // start and bound the wifiDirectService
+        Intent intentService = new Intent(this, WifiDirectService.class);
+        startService(intentService);
+        //bindService(intentService)
     }
 
     @Override
@@ -173,13 +189,13 @@ public class MainActivity extends ActionBarActivity {
         wifiReceiver.setActivity(this);
 
         // setup the wifi direct service
-        wifiDirectService = WifiDirectLocalService.getInstance();
+        /*wifiDirectService = WifiDirectLocalService.getInstance();
         wifiDirectService.setWifiDirectManager(wifiDirectManager);
-        wifiDirectService.setWifiChannel(wifiChannel);
+        wifiDirectService.setWifiDirectChannel(wifiChannel);
         wifiDirectService.setMainActivity(this);
         wifiDirectService.setRoomAdapter(roomAdapter);
 
-        wifiDirectService.setupLocalServiceDiscovery();
+        wifiDirectService.setupLocalServiceDiscovery();*/
 
         // search for available rooms
         //wifiDirectService.discoverLocalServices();
@@ -259,19 +275,55 @@ public class MainActivity extends ActionBarActivity {
             OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            new MaterialDialog.Builder(MainActivity.this)
-                    .title(R.string.main_dialog_headline)
-                    .content(R.string.main_dialog_content)
-                    .progress(true, 0)
-                    .negativeText(R.string.main_dialog_cancel)
-                    .show();
+            showRoomJoinFeedback();
 
             // get room deviceAddress and try to establish a connection
             RoomModel clickedRoom = roomAdapter.getItem(position);
             String clickedRoomAddr = clickedRoom.getOwnerAddr();
-            wifiDirectService.connectToLocalService(clickedRoomAddr);
+            wifiDirectService.connectToLocalService(clickedRoomAddr, MainActivity.this);
 
             Log.d(LOG_TAG, "Clicked deviceAddress: " + clickedRoom.getOwnerAddr());
+        }
+    };
+
+    public void showRoomJoinFeedback() {
+        roomJoinDialog = new MaterialDialog.Builder(MainActivity.this)
+                .title(R.string.main_dialog_headline)
+                .content(R.string.main_dialog_content)
+                .progress(true, 0)
+                .negativeText(R.string.main_dialog_cancel)
+                .show();
+    }
+
+    public void showRoomJoinFeedbackUpdate() {
+        roomJoinDialog.setContent("... beigetreten");
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // open the newly connected chat room
+                Intent chatIntent = new Intent(MainActivity.this, ChatActivity.class);
+                chatIntent.putExtra("ROOM_NAME", "SIMON");
+
+                startActivity(chatIntent);
+            }
+        }, 5000);
+
+    }
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            InstanceBinder localBinder = (InstanceBinder)
+                    service;
+            wifiDirectService = InstanceBinder.getService();
+            isWifiDirectServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isWifiDirectServiceBound = false;
         }
     };
 }

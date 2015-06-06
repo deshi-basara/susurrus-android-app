@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -13,15 +14,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-import rocks.susurrus.susurrus.chat.ReceiverService;
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.services.ChatService;
+import rocks.susurrus.susurrus.tasks.WifiDirectClientDistributionTask;
 
 
 public class ChatActivity extends ActionBarActivity {
@@ -31,7 +32,7 @@ public class ChatActivity extends ActionBarActivity {
     private final IntentFilter mIntentFilter = new IntentFilter();
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private WifiDirectBroadcastReceiver mReceiver;
+    private WifiDirectBroadcastReceiver wifiReceiver;
 
     // chat
     private MessageAdapter messageAdapter;
@@ -60,13 +61,13 @@ public class ChatActivity extends ActionBarActivity {
         // register application with the WifiP2PManager
         mChannel = mManager.initialize(this, getMainLooper(), null);
         // get an instance of the broadcast receiver and set needed data
-        mReceiver = WifiDirectBroadcastReceiver.getInstance();
-        mReceiver.setWifiDirectManager(mManager);
-        mReceiver.setWifiDirectChannel(mChannel);
-        mReceiver.setActivity(this);
+        wifiReceiver = WifiDirectBroadcastReceiver.getInstance();
+        wifiReceiver.setWifiDirectManager(mManager);
+        wifiReceiver.setWifiDirectChannel(mChannel);
+        wifiReceiver.setActivity(this);
 
         // start service for receiving messages
-        startService(new Intent(this, ReceiverService.class));
+        startService(new Intent(this, ChatService.class));
     }
 
     @Override
@@ -101,13 +102,13 @@ public class ChatActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         // register our broadcast receiver, which is called when an intentFilter matches
-        registerReceiver(mReceiver, mIntentFilter);
+        registerReceiver(wifiReceiver, mIntentFilter);
     }
     /* unregister the broadcast receiver */
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mReceiver);
+        unregisterReceiver(wifiReceiver);
     }
 
     /**
@@ -181,7 +182,28 @@ public class ChatActivity extends ActionBarActivity {
         MessageModel newMessage = new MessageModel(true, messageText);
         messageAdapter.add(newMessage);
 
+        // send/broadcast message
+        distributeNewMessage(newMessage);
+
         return true;
+    }
+
+    private void distributeNewMessage(MessageModel message) {
+        Log.d(LOG_TAG, "Distributing new message ...");
+
+        // is the current user the server owner or just a client?
+        if(wifiReceiver.isMaster()) {
+            // server owner, create a server-task for distributing the message directly to all
+            // connected clients.
+            Log.d(LOG_TAG, "... with a server-distributing-task ...");
+        }
+        else {
+            // not server owner, create a client-task for receiving messages
+            Log.d(LOG_TAG, "... with a client-distributing-task ...");
+
+            new WifiDirectClientDistributionTask(ChatActivity.this, wifiReceiver.getMasterAddress())
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+        }
     }
 
     /**

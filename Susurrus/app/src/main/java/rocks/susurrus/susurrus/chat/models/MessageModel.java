@@ -8,12 +8,16 @@ import java.net.InetAddress;
 public class MessageModel {
     public boolean owner;
     private InetAddress ownerAddress;
-    public String message;
+    private String message;
 
     public MessageModel(boolean owner, String message) {
         super();
         this.owner = owner;
         this.message = message;
+    }
+
+    public String getMessage() {
+        return this.message;
     }
 
     public Boolean isOwner() {

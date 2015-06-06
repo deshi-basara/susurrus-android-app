@@ -19,7 +19,7 @@
     <!-- Main Activity Connection Dialog -->
     <string name="main_dialog_headline">Verbinde mit Chat</string>
     <string name="main_dialog_content">
-        Einen kleinen Moment Geduld bitte ...
+        Einen Moment Geduld bitte ...
     </string>
     <string name="main_dialog_cancel">Abbrechen</string>
 
@@ -62,6 +62,9 @@
     <string name="create_room_encryption_disabled">Öffentlich</string>
     <string name="create_room_encryption">Passwort</string>
     <string name="create_room_encryption_error">Kein gültiges Passwort eingegeben.</string>
+    <string name="create_dialog_headline">Erstelle Raum</string>
+    <string name="create_dialog_content">Einen Moment Geduld bitte ...</string>
+    <string name="create_dialog_content_done">... Raum erfolgreich erstellt</string>
     <string name="action_room_done">Fertig</string>
 
 

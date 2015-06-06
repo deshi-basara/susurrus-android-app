@@ -1,12 +1,18 @@
-package rocks.susurrus.susurrus.network;
+package rocks.susurrus.susurrus.services;
 
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
+import android.os.Binder;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -16,12 +22,14 @@ import rocks.susurrus.susurrus.CreateActivity;
 import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
+import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 
 /**
  * Created by simon on 04.06.15.
  */
-public class WifiDirectLocalService {
-    private final static String LOG_TAG = "WifiDirectLocalService";
+public class WifiDirectService extends Service {
+    final static String LOG_TAG = "WifiDirectService";
 
     /**
      * Constants
@@ -31,15 +39,22 @@ public class WifiDirectLocalService {
     private final String SERVICE_TYPE = "_presence._tcp";
 
     /**
-     * Singleton
+     * Binder
      */
-    private static WifiDirectLocalService singleInstance;
+    private final IBinder binder = new InstanceBinder();
+    public class InstanceBinder extends Binder {
+        public WifiDirectService getService() {
+            return WifiDirectService.this;
+        }
+    }
 
     /**
      * Networking
      */
+    private final IntentFilter wifiDirectIntentFilter = new IntentFilter();
     private WifiP2pManager wifiDirectManager;
-    private WifiP2pManager.Channel wifiChannel;
+    private WifiP2pManager.Channel wifiDirectChannel;
+    private WifiDirectBroadcastReceiver wifiDirectReceiver;
 
     /**
      * Ui
@@ -53,35 +68,91 @@ public class WifiDirectLocalService {
     private RoomAdapter roomAdapter;
 
     /**
-     * Class constructur.
+     * Setters
      */
-    protected WifiDirectLocalService() { super(); }
-
-    /**
-     * Maintains a static reference to the lone singleton instance and returns the reference from.
-     * @return WifiDirectLocalService instance
-     */
-    public static WifiDirectLocalService getInstance() {
-        // is there already an instance of the class?
-        if(singleInstance == null) {
-            // no instance, create one
-            singleInstance = new WifiDirectLocalService();
-        }
-
-        return singleInstance;
-    }
-
     public void setWifiDirectManager(WifiP2pManager m) {
         this.wifiDirectManager = m;
     }
-    public void setWifiChannel(WifiP2pManager.Channel c) {
-        this.wifiChannel = c;
+    public void setWifiDirectChannel(WifiP2pManager.Channel c) {
+        this.wifiDirectChannel = c;
     }
     public void setMainActivity(MainActivity a) {
         this.mainActivity = a;
     }
     public void setRoomAdapter(RoomAdapter r) {
         this.roomAdapter = r;
+    }
+
+    @Override
+    /**
+     * Binder-Interface that clients use to communicate with the service.
+     */
+    public IBinder onBind(Intent arg0) {
+        return this.binder;
+    }
+
+    @Override
+    /**
+     * Is executed the first time the Service is started.
+     */
+    public void onCreate() {
+        // setup all needed networking interfaces
+        this.initiateNetworking();
+
+        // start listening for WifiP2P-broadcasts
+        registerReceiver(this.wifiDirectReceiver, this.wifiDirectIntentFilter);
+    }
+
+    @Override
+    /**
+     * Is executed when the Service is killed.
+     */
+    public void onDestroy() {
+        super.onDestroy();
+
+        // unregister WifiP2P-broadcast listener
+        unregisterReceiver(this.wifiDirectReceiver);
+    }
+
+    @Override
+    /**
+     * The system calls this method when another component, such as an activity, requests that
+     * the service be started, by calling startService().
+     */
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        return Service.START_NOT_STICKY;
+    }
+
+    /**
+     * Initiates all needed intentFilters, managers, channels and listeners for wifi-direct
+     * usage.
+     */
+    private void initiateNetworking() {
+        // set filter-actions, that will later be handled by the WiFiDirectBroadcastReceiver
+        this.wifiDirectIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        this.wifiDirectIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        this.wifiDirectIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        this.wifiDirectIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        // get an instance of the WifiP2PManager
+        this.wifiDirectManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        // register application with the WifiP2PManager
+        this.wifiDirectChannel = this.wifiDirectManager.initialize(this, getMainLooper(), null);
+
+        // get an instance of the broadcast receiver and set needed data
+        this.wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
+        this.wifiDirectReceiver.setWifiDirectManager(this.wifiDirectManager);
+        this.wifiDirectReceiver.setWifiDirectChannel(this.wifiDirectChannel);
+        //wifiDirectReceiver.setActivity(this);
+
+        // setup the wifi direct service
+        this.setupLocalServiceDiscovery();
+
+        // search for available rooms
+        //this.wifiDirectService.discoverLocalServices();
+
+        Log.d(this.LOG_TAG, "Networking initiated.");
     }
 
     /**
@@ -99,7 +170,7 @@ public class WifiDirectLocalService {
         // Add the local service, sending the service info, network channel,
         // and listener that will be used to indicate success or failure of
         // the request.
-        wifiDirectManager.addLocalService(wifiChannel, roomInfo, new WifiP2pManager.ActionListener() {
+        wifiDirectManager.addLocalService(wifiDirectChannel, roomInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 Log.d(LOG_TAG, "... service created.");
@@ -129,10 +200,10 @@ public class WifiDirectLocalService {
         connectionConfig.deviceAddress = serviceAddress;
         // user connects, don't make him the owner
         connectionConfig.groupOwnerIntent = 0;
-       // connectionConfig.wps.setup = WpsInfo.INVALID;
+        // connectionConfig.wps.setup = WpsInfo.INVALID;
         connectionConfig.wps.setup = WpsInfo.PBC;
 
-        wifiDirectManager.connect(wifiChannel, connectionConfig, new WifiP2pManager.ActionListener() {
+        wifiDirectManager.connect(wifiDirectChannel, connectionConfig, new WifiP2pManager.ActionListener() {
 
             @Override
             public void onSuccess() {
@@ -154,13 +225,13 @@ public class WifiDirectLocalService {
     public void setupLocalServiceDiscovery() {
         Log.d(LOG_TAG, "Setup discovering rooms.");
 
-        wifiDirectManager.setDnsSdResponseListeners(wifiChannel, servListener, txtListener);
+        wifiDirectManager.setDnsSdResponseListeners(wifiDirectChannel, servListener, txtListener);
 
         // get an instance of the WifiP2P service request object
         WifiP2pDnsSdServiceRequest roomRequest = WifiP2pDnsSdServiceRequest.newInstance();
 
         // add a service discovery request
-        wifiDirectManager.addServiceRequest(wifiChannel, roomRequest,
+        wifiDirectManager.addServiceRequest(wifiDirectChannel, roomRequest,
                 new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
@@ -186,7 +257,7 @@ public class WifiDirectLocalService {
         Log.d(LOG_TAG, "Start discovering rooms ...");
 
         // make the request
-        wifiDirectManager.discoverServices(wifiChannel, new WifiP2pManager.ActionListener() {
+        wifiDirectManager.discoverServices(wifiDirectChannel, new WifiP2pManager.ActionListener() {
 
                     @Override
                     public void onSuccess() {

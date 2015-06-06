@@ -1,6 +1,7 @@
 package rocks.susurrus.susurrus;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.transitions.everywhere.TransitionManager;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.wrapp.floatlabelededittext.FloatLabeledEditText;
 
 import rocks.susurrus.susurrus.models.RoomModel;
@@ -37,6 +39,7 @@ public class CreateActivity extends ActionBarActivity {
     private EditText roomPassword;
     private TextView roomPasswordError;
     private FloatLabeledEditText roomPasswordContainer;
+    private MaterialDialog createRoomDialog;
 
     /**
      * Data
@@ -203,6 +206,8 @@ public class CreateActivity extends ActionBarActivity {
      * Hands the hashMap to the WifiDirectLocalService for registering the new room service.
      */
     private void registerWifiRoom() {
+        showWifiRoomDialog();
+
         WifiDirectLocalService wifiDirectService = WifiDirectLocalService.getInstance();
         wifiDirectService.setupLocalService(this, roomData.toHashMap());
     }
@@ -212,12 +217,31 @@ public class CreateActivity extends ActionBarActivity {
 
         // no errors
         if(!hasError) {
-            // open the newly created chat room
-            Intent chatIntent = new Intent(this, ChatActivity.class);
-            chatIntent.putExtra("ROOM_NAME", roomData.getRoomName());
+            createRoomDialog.setContent(getString(R.string.create_dialog_content_done));
 
-            startActivity(chatIntent);
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // open the newly created chat room
+                    Intent chatIntent = new Intent(CreateActivity.this, ChatActivity.class);
+                    chatIntent.putExtra("ROOM_NAME", roomData.getRoomName());
+
+                    startActivity(chatIntent);
+                }
+            }, 5000);
         }
+    }
+
+    private void showWifiRoomDialog() {
+        Log.d(LOG_TAG, "showWifiRoomDialog");
+
+        createRoomDialog = new MaterialDialog.Builder(CreateActivity.this)
+                .title(R.string.create_dialog_headline)
+                .content(R.string.create_dialog_content)
+                .progress(true, 0)
+                //.negativeText(R.string.main_dialog_cancel)
+                .show();
     }
 
     /**
