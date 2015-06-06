@@ -48,7 +48,7 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:id="@+id/imageView"
-                android:src="@drawable/mind_map_256"
+                android:src="@drawable/binoculars_256"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true" />
 
