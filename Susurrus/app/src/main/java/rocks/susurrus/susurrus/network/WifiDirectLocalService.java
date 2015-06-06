@@ -1,6 +1,5 @@
 package rocks.susurrus.susurrus.network;
 
-import android.app.Activity;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -9,7 +8,6 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -129,6 +127,9 @@ public class WifiDirectLocalService {
     public void connectToLocalService(String serviceAddress) {
         WifiP2pConfig connectionConfig = new WifiP2pConfig();
         connectionConfig.deviceAddress = serviceAddress;
+        // user connects, don't make him the owner
+        connectionConfig.groupOwnerIntent = 0;
+       // connectionConfig.wps.setup = WpsInfo.INVALID;
         connectionConfig.wps.setup = WpsInfo.PBC;
 
         wifiDirectManager.connect(wifiChannel, connectionConfig, new WifiP2pManager.ActionListener() {
@@ -201,11 +202,16 @@ public class WifiDirectLocalService {
                     }
 
                     @Override
-                    public void onFailure(int code) {
-                        Log.d(LOG_TAG, "DiscoverServices error: " + code);
+                    public void onFailure(int errorCode) {
                         // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                        if (code == WifiP2pManager.P2P_UNSUPPORTED) {
+                        if(errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
                             Log.d(LOG_TAG, "P2P isn't supported on this device.");
+                        }
+                        else if(errorCode == WifiP2pManager.ERROR) {
+                            Log.d(LOG_TAG, "Error on this device.");
+                        }
+                        else if(errorCode == WifiP2pManager.BUSY) {
+                            Log.d(LOG_TAG, "Busy on this device.");
                         }
                     }
                 }
