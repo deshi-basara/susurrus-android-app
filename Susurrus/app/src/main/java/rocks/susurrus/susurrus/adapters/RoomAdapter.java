@@ -50,6 +50,7 @@ public class RoomAdapter extends ArrayAdapter<RoomModel> {
     public void clear() {
         Log.d(LOG_TAG, "Clearing room list.");
         roomList.clear();
+        super.clear();
     }
 
     /**
