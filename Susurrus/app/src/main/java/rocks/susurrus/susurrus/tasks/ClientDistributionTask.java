@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Message;
 import android.util.Log;
+import android.widget.ImageView;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -16,26 +17,37 @@ import java.util.List;
 
 import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.MainActivity;
+import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 
 /**
  * Created by simon on 06.06.15.
  */
-public class WifiDirectClientDistributionTask extends AsyncTask<MessageModel, Integer, Boolean> {
+public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boolean> {
     public static final String LOG_TAG = "ClientDistributionTask";
 
-    public static final int MESSAGE_PREPARING = 1;
-    public static final int MESSAGE_SENDING = 2;
-    public static final int MESSAGE_SENT = 3;
+    /**
+     * Constants
+     */
+    public static final int MESSAGE_SENDING = 1;
+    public static final int MESSAGE_SENT = 2;
+    public static final int MESSAGE_ERROR = 3;
 
-    private Context context;
+    /**
+     * Attributes
+     */
+    private ChatActivity chatActivity;
     private InetAddress serverAddress;
 
-
-    public WifiDirectClientDistributionTask(Context c, InetAddress a) {
-        this.context = c;
-        this.serverAddress = a;
+    /**
+     * Task constructor.
+     * @param chatActivity Needed for progress feedback calls.
+     * @param serverAddress Destination address (socket-server) of the message.
+     */
+    public ClientDistributionTask(ChatActivity chatActivity, InetAddress serverAddress) {
+        this.chatActivity = chatActivity;
+        this.serverAddress = serverAddress;
     }
 
     @Override
@@ -47,7 +59,7 @@ public class WifiDirectClientDistributionTask extends AsyncTask<MessageModel, In
 
         Log.d(LOG_TAG, "Message: " + messageModel[0].getMessage());
 
-        publishProgress(this.MESSAGE_PREPARING);
+        publishProgress(this.MESSAGE_SENDING);
 
         try {
             // create a new socket client
@@ -60,8 +72,6 @@ public class WifiDirectClientDistributionTask extends AsyncTask<MessageModel, In
             client.connect(new InetSocketAddress(this.serverAddress,
                     WifiDirectLocalService.SERVICE_PORT));
 
-            publishProgress(this.MESSAGE_SENDING);
-
             Log.d(LOG_TAG, "Client successfully connected to " + this.serverAddress);
 
             // get the client's output stream and write the message to it
@@ -73,6 +83,8 @@ public class WifiDirectClientDistributionTask extends AsyncTask<MessageModel, In
             publishProgress(this.MESSAGE_SENT);
         } catch (IOException e) {
             e.printStackTrace();
+
+            publishProgress(this.MESSAGE_ERROR);
         } /*finally{
             if (client != null) {
                 if (socket.isConnected()) {
@@ -98,11 +110,22 @@ public class WifiDirectClientDistributionTask extends AsyncTask<MessageModel, In
         // we only pass one argument at max, always use the first element [0] from the 'varargs'
         super.onProgressUpdate(messageStatus[0]);
 
-        Log.d(LOG_TAG, "Message progress: " + messageStatus[0]);
+        // get indicator view
+        ImageView statusIndicator = (ImageView) chatActivity.findViewById(
+                R.id.single_message_status);
 
-        /*if(isActivityRunning(MainActivity.class)){
-            ChatActivity.refreshList(msg[0], true);
-        }*/
+        // update the view element according to the messageStatus
+        switch(messageStatus[0]) {
+            case MESSAGE_SENT:
+                // change drawable to the sent-indicator
+                statusIndicator.setImageResource(R.drawable.checkmark_24);
+                break;
+            case MESSAGE_ERROR:
+                // change drawable to the error-indicator
+                statusIndicator.setImageResource(R.drawable.cancel_24);
+        }
+
+        Log.d(LOG_TAG, "Message progress: " + messageStatus[0]);
     }
 
     @Override

@@ -1,9 +1,6 @@
 package rocks.susurrus.susurrus;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -20,24 +17,23 @@ import android.widget.ListView;
 
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
-import rocks.susurrus.susurrus.services.ChatService;
-import rocks.susurrus.susurrus.tasks.WifiDirectClientDistributionTask;
+import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
 
 
 public class ChatActivity extends ActionBarActivity {
     private static final String LOG_TAG = "ChatActivity";
 
-    // intent-filter for reacting on network changes
-    private final IntentFilter mIntentFilter = new IntentFilter();
-    private WifiP2pManager mManager;
-    private WifiP2pManager.Channel mChannel;
-    private WifiDirectBroadcastReceiver wifiReceiver;
-
-    // chat
+    /**
+     * Data
+     */
     private MessageAdapter messageAdapter;
+    private RoomModel currentRoom;
 
-    // view
+    /**
+     *
+     */
     private ListView messageListView;
     private EditText messageInputText;
     private ImageButton messageSendButton;
@@ -50,24 +46,15 @@ public class ChatActivity extends ActionBarActivity {
         setAction();
         setView();
 
-        // set filter-actions, that will later be handled by the WiFiDirectBroadcastReceiver
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
-        // get an instance of the WifiP2PManager
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        // register application with the WifiP2PManager
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        // get an instance of the broadcast receiver and set needed data
-        wifiReceiver = WifiDirectBroadcastReceiver.getInstance();
-        wifiReceiver.setWifiDirectManager(mManager);
-        wifiReceiver.setWifiDirectChannel(mChannel);
-        wifiReceiver.setActivity(this);
-
         // start service for receiving messages
-        startService(new Intent(this, ChatService.class));
+        //startService(new Intent(this, ChatService.class));
+
+        setupData();
+    }
+
+    private void setupData() {
+        // get needed data from intent
+        this.currentRoom = (RoomModel) getIntent().getSerializableExtra("ROOM_MODEL");
     }
 
     @Override
@@ -95,20 +82,6 @@ public class ChatActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    /* register the broadcast receiver with the intent values to be matched */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // register our broadcast receiver, which is called when an intentFilter matches
-        registerReceiver(wifiReceiver, mIntentFilter);
-    }
-    /* unregister the broadcast receiver */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(wifiReceiver);
     }
 
     /**
@@ -179,7 +152,7 @@ public class ChatActivity extends ActionBarActivity {
         Log.d(LOG_TAG, "New message: " + messageText);
 
         // add message to the adapter
-        MessageModel newMessage = new MessageModel(true, messageText);
+        MessageModel newMessage = new MessageModel(true, "Cooler Benutzer", messageText);
         messageAdapter.add(newMessage);
 
         // send/broadcast message
@@ -188,11 +161,20 @@ public class ChatActivity extends ActionBarActivity {
         return true;
     }
 
+    /**
+     * Starts the distribution of a message inside the wifiDirect Network.
+     * If the user is a normal client:  Send message to the socket-server (owner), which distributes
+     *                                  the message.
+     * If the user is the room owner:   Send message directly to all connected peers.
+     * @param message
+     */
     private void distributeNewMessage(MessageModel message) {
-        Log.d(LOG_TAG, "Distributing new message ...");
+        Log.d(LOG_TAG, "Distributing message ...");
+
+        WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
 
         // is the current user the server owner or just a client?
-        if(wifiReceiver.isMaster()) {
+        if(wifiDirectReceiver.isMaster()) {
             // server owner, create a server-task for distributing the message directly to all
             // connected clients.
             Log.d(LOG_TAG, "... with a server-distributing-task ...");
@@ -201,7 +183,7 @@ public class ChatActivity extends ActionBarActivity {
             // not server owner, create a client-task for receiving messages
             Log.d(LOG_TAG, "... with a client-distributing-task ...");
 
-            new WifiDirectClientDistributionTask(ChatActivity.this, wifiReceiver.getMasterAddress())
+            new ClientDistributionTask(ChatActivity.this, wifiDirectReceiver.getMasterAddress())
                     .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
         }
     }

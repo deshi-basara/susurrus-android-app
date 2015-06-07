@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,9 @@ import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.tasks.ClientAuthenticationTask;
+import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
+import rocks.susurrus.susurrus.threads.ServerReceiveThread;
 
 /**
  * Created by simon on 04.06.15.
@@ -34,6 +38,7 @@ public class WifiDirectService extends Service {
      * Constants
      */
     public static final int SERVICE_PORT = 4040;
+    public static final int SERVICE_AUTH_PORT = 4041;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
 
@@ -155,72 +160,8 @@ public class WifiDirectService extends Service {
     }
 
     /**
-     * Setups an own local "susurrus"-service (which represents a chat room).
+     * Setups listeners that are called, when a new "susurrus"-service is found.
      */
-    public void setupLocalService(final CreateActivity feedbackActivity, Map roomData) {
-        Log.d(LOG_TAG, "Start registering a new room service ...");
-
-        // Service information. Pass it an instance name, service type
-        // _protocol._transportlayer, and the map containing
-        // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo roomInfo =
-                WifiP2pDnsSdServiceInfo.newInstance(SERVICE_NAME, SERVICE_TYPE, roomData);
-
-        // Add the local service, sending the service info, network channel,
-        // and listener that will be used to indicate success or failure of
-        // the request.
-        wifiDirectManager.addLocalService(wifiDirectChannel, roomInfo, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Log.d(LOG_TAG, "... service created.");
-                feedbackActivity.registerWifiRoomFeedback(false, 0);
-            }
-
-            @Override
-            public void onFailure(int errorCode) {
-                // command failed, check for P2P_UNSUPPORTED, ERROR, or BUSY
-                if(errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
-                    Log.d(LOG_TAG, "... service error code: P2P_UNSUPPORTED");
-                }
-                else if(errorCode == WifiP2pManager.ERROR) {
-                    Log.d(LOG_TAG, "... service error code: ERROR");
-                }
-                else if(errorCode == WifiP2pManager.BUSY) {
-                    Log.d(LOG_TAG, "... service error code: BUSY");
-                }
-
-                feedbackActivity.registerWifiRoomFeedback(true, errorCode);
-            }
-        });
-    }
-
-    public void connectToLocalService(String serviceAddress, final MainActivity feedbackActivity) {
-        WifiP2pConfig connectionConfig = new WifiP2pConfig();
-        connectionConfig.deviceAddress = serviceAddress;
-        // user connects, don't make him the owner
-        connectionConfig.groupOwnerIntent = 0;
-        // connectionConfig.wps.setup = WpsInfo.INVALID;
-        connectionConfig.wps.setup = WpsInfo.PBC;
-
-        wifiDirectManager.connect(wifiDirectChannel, connectionConfig, new WifiP2pManager.ActionListener() {
-
-            @Override
-            public void onSuccess() {
-                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
-                Log.d(LOG_TAG, "Connection to room established");
-
-                feedbackActivity.showRoomJoinFeedbackUpdate();
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                Log.d(LOG_TAG, "Connection to room failed: " + reason);
-            }
-        });
-
-    }
-
-
     public void setupLocalServiceDiscovery() {
         Log.d(LOG_TAG, "Setup discovering rooms.");
 
@@ -250,7 +191,86 @@ public class WifiDirectService extends Service {
     }
 
     /**
-     * Starts the discovery of local "susurrus"-services.
+     * Setups an own local "susurrus"-service (which represents a chat room).
+     */
+    public void setupLocalService(final CreateActivity feedbackActivity, final RoomModel roomModel) {
+        Log.d(LOG_TAG, "Start registering a new room service ...");
+
+        // Service information. Pass it an instance name, service type
+        // _protocol._transportlayer, and the map containing
+        // information other devices will want once they connect to this one.
+        WifiP2pDnsSdServiceInfo roomInfo =
+                WifiP2pDnsSdServiceInfo.newInstance(SERVICE_NAME, SERVICE_TYPE, roomModel.toHashMap());
+
+        // Add the local service, sending the service info, network channel,
+        // and listener that will be used to indicate success or failure of
+        // the request.
+        wifiDirectManager.addLocalService(wifiDirectChannel, roomInfo, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(LOG_TAG, "... service created.");
+
+                // send feedback
+                feedbackActivity.registerWifiRoomFeedback(false, 0);
+
+                Intent intentService = new Intent(WifiDirectService.this, MasterService.class);
+                startService(intentService);
+            }
+
+            @Override
+            public void onFailure(int errorCode) {
+                // command failed, check for P2P_UNSUPPORTED, ERROR, or BUSY
+                if (errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
+                    Log.d(LOG_TAG, "... service error code: P2P_UNSUPPORTED");
+                } else if (errorCode == WifiP2pManager.ERROR) {
+                    Log.d(LOG_TAG, "... service error code: ERROR");
+                } else if (errorCode == WifiP2pManager.BUSY) {
+                    Log.d(LOG_TAG, "... service error code: BUSY");
+                }
+
+                feedbackActivity.registerWifiRoomFeedback(true, errorCode);
+            }
+        });
+    }
+
+    /**
+     * Establishes a connection to a local "susurrus"-service.
+     * @param roomModel
+     * @param feedbackActivity
+     */
+    public void connectToLocalService(final RoomModel roomModel, final MainActivity feedbackActivity) {
+        WifiP2pConfig connectionConfig = new WifiP2pConfig();
+        connectionConfig.deviceAddress = roomModel.getOwnerAddr();
+        // user connects, don't make him the owner
+        connectionConfig.groupOwnerIntent = 0;
+        // connectionConfig.wps.setup = WpsInfo.INVALID;
+        connectionConfig.wps.setup = WpsInfo.PBC;
+
+        wifiDirectManager.connect(wifiDirectChannel, connectionConfig, new WifiP2pManager.
+                ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
+                Log.d(LOG_TAG, "Connection to room established");
+
+                // authenticate with room
+                Log.d(LOG_TAG, "Authenticating with room");
+
+                new ClientAuthenticationTask(roomModel.getOwnerAddr(), roomModel).execute();
+
+                feedbackActivity.showRoomJoinFeedbackUpdate();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.d(LOG_TAG, "Connection to room failed: " + reason);
+            }
+        });
+    }
+
+    /**
+     * Starts the manual discovery of local "susurrus"-services.
      */
     public void discoverLocalServices() {
         Log.d(LOG_TAG, "Start discovering rooms ...");
@@ -315,7 +335,6 @@ public class WifiDirectService extends Service {
     /**
      * On receive listener: wifiDirectManager.
      * Receives the actual description and connection information of a room.
-     * The previous code snippet implemented a Map object to pair a device address with the buddy name. The service response listener uses this to link the DNS record with the corresponding service information
      */
     private WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager
             .DnsSdServiceResponseListener() {
@@ -353,19 +372,6 @@ public class WifiDirectService extends Service {
                 roomAdapter.add(newRoom);
             }
 
-            /*resourceType.deviceName = availableDevices
-                    .containsKey(resourceType.deviceAddress) ? availableDevices
-                    .get(resourceType.deviceAddress) : resourceType.deviceName;
-
-            // Add to the custom adapter defined specifically for showing
-            // wifi devices.
-            /*WiFiDirectServicesList fragment = (WiFiDirectServicesList) getFragmentManager()
-                    .findFragmentById(R.id.frag_peerlist);
-            WiFiDevicesAdapter adapter = ((WiFiDevicesAdapter) fragment
-                    .getListAdapter());
-
-            adapter.add(resourceType);
-            adapter.notifyDataSetChanged();*/
             Log.d(LOG_TAG, "onBonjourServiceAvailable " + instanceName);
         }
     };
