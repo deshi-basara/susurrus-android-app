@@ -1,34 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    >
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/single_message_container"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        android:gravity="right" >
+        android:gravity="right"
+        >
 
         <TextView
             android:id="@+id/single_message_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="@color/lighterpurple"
-            android:padding="10dp"
+            android:background="@color/white"
+            android:layout_marginRight="5dp"
             android:text="Hello bubbles!"
-            android:textColor="@android:color/primary_text_light" />
+            android:textColor="@android:color/primary_text_light"
+            android:paddingRight="40dp"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:nestedScrollingEnabled="true"
+            />
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
+            android:id="@+id/single_message_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/multiple_inputs_24"
+            android:layout_marginRight="5dp"
+            android:layout_centerVertical="true"
+            android:layout_alignRight="@+id/single_message_content"
+            android:layout_alignEnd="@+id/single_message_content"
+            />
+
+        <!--<de.hdodenhof.circleimageview.CircleImageView
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/profile_image"
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:src="@drawable/profile_manager_96"
             app:border_width="2dp"
-            app:border_color="@color/white"/>
+            app:border_color="@color/white"/>-->
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>
