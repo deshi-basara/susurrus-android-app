@@ -25,8 +25,6 @@ import rocks.susurrus.susurrus.chat.models.MessageModel;
 public class MessageAdapter extends ArrayAdapter<MessageModel> {
     private static final String LOG_TAG = "MessageAdapter";
 
-    private TextView chatText;
-
     private List<MessageModel> messageList = new ArrayList<MessageModel>();
 
     /**
@@ -90,11 +88,15 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
             else {
                 // not the owner, position message on the left
                 row = inflater.inflate(R.layout.activity_chat_message_left, parent, false);
+
+                // set username
+                TextView usernameText = (TextView) row.findViewById(R.id.single_message_username);
+                usernameText.setText(chatMessage.getOwnerName());
             }
         }
 
         // lookup view and populate it
-        chatText = (TextView) row.findViewById(R.id.single_message_content);
+        TextView chatText = (TextView) row.findViewById(R.id.single_message_content);
         chatText.setText(chatMessage.getMessage());
 
         // return the completed view to render on screen

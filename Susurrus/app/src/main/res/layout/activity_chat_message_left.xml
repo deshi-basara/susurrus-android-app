@@ -3,10 +3,10 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/single_message_container"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="166dp"
         android:layout_margin="5dp" >
 
         <de.hdodenhof.circleimageview.CircleImageView
@@ -16,18 +16,36 @@
             android:layout_height="45dp"
             android:src="@drawable/profile_night_portrait_96"
             app:border_width="2dp"
-            app:border_color="@color/white"/>
+            app:border_color="@color/white"
+            android:layout_below="@+id/single_message_username"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:id="@+id/single_message_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Benutzernamen"
+            android:layout_alignParentTop="true"
+            android:layout_alignLeft="@+id/single_message_content"
+            android:layout_alignStart="@+id/single_message_content" />
 
         <TextView
             android:id="@+id/single_message_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@color/lighterpurple"
+            android:background="@color/white"
             android:padding="10dp"
             android:text="Hello bubbles!"
-            android:textColor="@android:color/primary_text_light" />
+            android:textColor="@android:color/primary_text_light"
+            android:layout_gravity="center_vertical"
+            android:layout_alignTop="@+id/profile_image"
+            android:layout_toRightOf="@+id/profile_image"
+            android:layout_toEndOf="@+id/profile_image"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"/>
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>
