@@ -51,15 +51,21 @@
         </activity>
 
         <service
-            android:name=".services.ChatService"
-            android:enabled="true"
-            android:exported="true" >
-        </service>
-        <service
             android:name=".services.WifiDirectService"
             android:enabled="true"
             android:exported="true" >
         </service>
+        <service
+            android:name=".services.MasterService"
+            android:enabled="true"
+            android:exported="true" >
+        </service>
+
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_activity"
+            android:parentActivityName=".MainActivity" >
+        </activity>
     </application>
 
 </manifest>

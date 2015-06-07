@@ -7,6 +7,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Einstellungen</string>
     <string name="action_discover">Scannen</string>
+    <string name="action_room_done">Fertig</string>
+    <string name="action_settings_done">Fertig</string>
 
     <!--
         Main Activity
@@ -69,7 +71,6 @@
     <string name="create_dialog_headline">Erstelle Raum</string>
     <string name="create_dialog_content">Einen Moment Geduld bitte ...</string>
     <string name="create_dialog_content_done">... Raum erfolgreich erstellt</string>
-    <string name="action_room_done">Fertig</string>
 
     <!--
         Chat Activity
@@ -78,6 +79,11 @@
     <string name="chat_drawer_close">Menü schließen</string>
     <string name="chat_drawer_open">Menü öffnen</string>
 
+    <!--
+        Settings
+    -->
+    <string name="settings_activity">Einstellungen</string>
+    <string name="settings_user_name_hint">Benutzername</string>
 
 
 </resources>

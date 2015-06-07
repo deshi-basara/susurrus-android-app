@@ -1,0 +1,64 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="rocks.susurrus.susurrus.SettingsActivity">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/settings_user_image"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:border_width="2dp"
+                app:border_color="@color/white"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:src="@drawable/decision_256"
+                />
+
+            <com.wrapp.floatlabelededittext.FloatLabeledEditText
+                android:id="@+id/setting_user_name_container"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/settings_user_image"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="10dp"
+                >
+
+                <EditText
+                    android:id="@+id/settings_user_name"
+                    android:maxLength="20"
+                    android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/create_room_image"
+                    android:hint="@string/settings_user_name_hint"
+                    />
+
+            </com.wrapp.floatlabelededittext.FloatLabeledEditText>
+
+            <TextView
+                android:id="@+id/settings_user_name_error"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/create_room_category_container"
+                android:layout_alignLeft="@+id/create_room_name_container"
+                android:layout_alignStart="@+id/create_room_name_container"
+                android:layout_marginLeft="5dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/create_room_name_error"
+                android:textColor="@color/error"
+                android:visibility="invisible"
+                />
+
+        </RelativeLayout>
+
+</RelativeLayout>

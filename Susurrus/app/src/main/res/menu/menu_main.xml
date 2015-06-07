@@ -16,6 +16,7 @@
         android:title="@string/action_settings"
         android:icon="@drawable/settings_48"
         android:orderInCategory="100"
-        app:showAsAction="always" />
+        app:showAsAction="always"
+        android:onClick="handleActionButton"/>
 
 </menu>

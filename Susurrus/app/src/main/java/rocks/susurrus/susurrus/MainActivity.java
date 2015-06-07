@@ -80,7 +80,7 @@ public class MainActivity extends ActionBarActivity {
             Intent intentIntro = new Intent(this, IntroActivity.class);
             startActivity(intentIntro);
         }
-        else if(true) {
+        else if(false) {
             Intent intentChat = new Intent(this, ChatActivity.class);
             intentChat.putExtra("ROOM_NAME", "Simon@testing");
             startActivity(intentChat);
@@ -97,10 +97,7 @@ public class MainActivity extends ActionBarActivity {
                     SUPPLICANT_STATE_CHANGED_ACTION));
         }
 
-
-
         setView();
-        //setWifiDirect();
 
         // start and bind the wifiDirectService
         Intent intentService = new Intent(this, WifiDirectService.class);
@@ -167,43 +164,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    /**
-     * Initiates all needed intentFilter, manager, channels and listener for wifi-direct
-     * usage.
-     */
-    private void setWifiDirect() {
-        // set filter-actions, that will later be handled by the WiFiDirectBroadcastReceiver
-        wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        wifiIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
-        // get an instance of the WifiP2PManager
-        wifiDirectManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        // register application with the WifiP2PManager
-        wifiChannel = wifiDirectManager.initialize(this, getMainLooper(), null);
-
-        // get an instance of the broadcast receiver and set needed data
-        wifiReceiver = WifiDirectBroadcastReceiver.getInstance();
-        wifiReceiver.setWifiDirectManager(wifiDirectManager);
-        wifiReceiver.setWifiDirectChannel(wifiChannel);
-        wifiReceiver.setActivity(this);
-
-        // setup the wifi direct service
-        /*wifiDirectService = WifiDirectLocalService.getInstance();
-        wifiDirectService.setWifiDirectManager(wifiDirectManager);
-        wifiDirectService.setWifiDirectChannel(wifiChannel);
-        wifiDirectService.setMainActivity(this);
-        wifiDirectService.setRoomAdapter(roomAdapter);
-
-        wifiDirectService.setupLocalServiceDiscovery();*/
-
-        // search for available rooms
-        //wifiDirectService.discoverLocalServices();
-
-        Log.d(LOG_TAG, "WifiDirect initiated.");
-    }
-
     private void setView() {
         // get needed views
         createButton = (FloatingActionButton) findViewById(R.id.button_create);
@@ -239,9 +199,15 @@ public class MainActivity extends ActionBarActivity {
 
         // which action button was clicked?
         if(actionButtonId == R.id.action_discover) {
+            // scan for rooms
             roomAdapter.clear();
             rippleBackground.startRippleAnimation();
             wifiDirectService.discoverLocalServices();
+        }
+        else if(actionButtonId == R.id.action_settings) {
+            // open settings
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
         }
 
         return true;
