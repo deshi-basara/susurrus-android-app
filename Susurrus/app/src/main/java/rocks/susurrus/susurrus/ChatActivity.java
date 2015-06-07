@@ -1,5 +1,6 @@
 package rocks.susurrus.susurrus;
 
+import android.app.Notification;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
@@ -42,6 +43,7 @@ public class ChatActivity extends ActionBarActivity {
     private EditText messageInputText;
     private ImageButton messageSendButton;
     private DrawerLayout chatDrawerLayout;
+    private ActionBarDrawerToggle chatDrawerToggle;
     private boolean chatDrawerOpen = false;
 
     @Override
@@ -138,10 +140,29 @@ public class ChatActivity extends ActionBarActivity {
         messageListView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
         messageListView.setAdapter(messageAdapter);
 
+        // initiate drawer
+        chatDrawerToggle = new ActionBarDrawerToggle(this, chatDrawerLayout,
+                null, R.string.chat_drawer_open, R.string.chat_drawer_close) {
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+
+                chatDrawerOpen = false;
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+
+                chatDrawerOpen = true;
+            }
+        };
+
         // set events
         messageInputText.setOnKeyListener(messageInputTextListener);
         messageSendButton.setOnClickListener(messageSendButtonListener);
-        //chatDrawerLayout.setDrawerListener(chatDrawerToggle);
+        chatDrawerLayout.setDrawerListener(chatDrawerToggle);
     }
 
     /**
