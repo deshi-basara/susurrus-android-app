@@ -89,7 +89,7 @@ public class RoomModel implements Serializable {
     public Map toHashMap() {
         Map roomMap = new HashMap();
         roomMap.put("port", String.valueOf(WifiDirectLocalService.SERVICE_PORT));
-        roomMap.put("user_name", "OWNER" + (int) (Math.random() * 1000));
+        roomMap.put("user_name", this.ownerName);
         roomMap.put("room_name", this.roomName);
         roomMap.put("room_category", this.roomCategory);
         roomMap.put("room_private", String.valueOf(roomEncrypted));

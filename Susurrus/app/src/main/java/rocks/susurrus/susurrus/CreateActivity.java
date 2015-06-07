@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -188,8 +189,13 @@ public class CreateActivity extends ActionBarActivity {
             return false;
         }
         else {
+            // get the creator's username
+            SharedPreferences settings = getSharedPreferences(SettingsActivity.PREF_ID, 0);
+            String userName = settings.getString(SettingsActivity.PREF_USER_NAME, "Anonymous");
+
             // everything valid, create a new RoomModel
-            roomData = new RoomModel("OWNER", "OWNER_ADDRESS", roomNameValue, roomCategoryValue,
+            //@todo real "OWNER_ADDRESS"
+            roomData = new RoomModel(userName, "OWNER_ADDRESS", roomNameValue, roomCategoryValue,
                     "ROOM_IMAGE", roomEncrypted);
             if(roomEncrypted) {
                 roomData.setPassword(roomPasswordValue);
@@ -224,7 +230,7 @@ public class CreateActivity extends ActionBarActivity {
     private void registerWifiRoom() {
         showWifiRoomDialog();
 
-        wifiDirectService.setupLocalService(this, roomData.toHashMap());
+        wifiDirectService.setupLocalService(this, roomData);
     }
 
     /**
@@ -246,6 +252,7 @@ public class CreateActivity extends ActionBarActivity {
                     // open the newly created chat room
                     Intent chatIntent = new Intent(CreateActivity.this, ChatActivity.class);
                     chatIntent.putExtra("ROOM_NAME", roomData.getRoomName());
+                    chatIntent.putExtra("ROOM_MODEL", roomData);
 
                     startActivity(chatIntent);
                 }
