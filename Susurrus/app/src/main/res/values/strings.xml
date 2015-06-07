@@ -1,12 +1,16 @@
 <resources>
     <string name="app_name">Susurrus</string>
 
-    <!-- Action bar -->
+    <!--
+        Action bar
+    -->
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Einstellungen</string>
     <string name="action_discover">Scannen</string>
 
-    <!-- Main Activity -->
+    <!--
+        Main Activity
+    -->
     <string name="main_empty_headline">Keine Räume in deiner Nähe</string>
     <string name="main_empty_desc">
         Benutze den Refresh-Button um deine \n Umgebung
@@ -24,7 +28,9 @@
     <string name="main_dialog_cancel">Abbrechen</string>
 
 
-    <!-- Intro Activity -->
+    <!--
+        Intro Activity
+    -->
     <string name="intro_activity">Intro Activity</string>
     <string name="intro_welcome">
         Bevor du loslegen kannst müssen noch einige wichtige Einstellungen getroffen werden
@@ -38,20 +44,18 @@
     <string name="intro_button_next">Weiter</string>
     <string name="intro_button_prev">Zurück</string>
     <string name="intro_button_ready">Fertig</string>
-
     <string name="intro_one_headline">Willkommen</string>
-
     <string name="intro_two_headline">Benutzung</string>
-
     <string name="intro_three_headline">Benutzername</string>
-
     <string name="intro_four_headline">Generiere</string>
     <string name="title_activity_chat">ChatActivity</string>
     <string name="title_activity_create">CreateActivity</string>
 
 
 
-    <!-- Create Activity -->
+    <!--
+        Create Activity
+    -->
     <string name="create_activity">Raum erstellen</string>
     <string name="create_room_name_hint">Raum Name</string>
     <string name="create_room_name_error">Kein gültiger Raumname: Aa-Zz erlaubt.</string>
@@ -66,6 +70,13 @@
     <string name="create_dialog_content">Einen Moment Geduld bitte ...</string>
     <string name="create_dialog_content_done">... Raum erfolgreich erstellt</string>
     <string name="action_room_done">Fertig</string>
+
+    <!--
+        Chat Activity
+    -->
+    <string name="chat_drawer_title">Menü</string>
+    <string name="chat_drawer_close">Menü schließen</string>
+    <string name="chat_drawer_open">Menü öffnen</string>
 
 
 

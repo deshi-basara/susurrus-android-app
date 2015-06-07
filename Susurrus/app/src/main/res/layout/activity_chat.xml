@@ -1,59 +1,122 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    tools:context=".ChatActivity">
+    >
 
-    <ListView
-        android:id="@+id/message_list_view"
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/chat_drawer_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="45dp"
-        android:layout_marginTop="5dp"
-        android:divider="@null"
-        android:dividerHeight="0dp">
-    </ListView>
+        android:layout_height="match_parent"
+        >
 
-    <RelativeLayout
-        android:id="@+id/chat_input_container"
-        android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:orientation="vertical"
-        android:background="@color/white">
+        <RelativeLayout
+            android:id="@+id/chat_drawer_right"
+            android:layout_width="240dp"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            android:layout_gravity="right"
+            >
 
-        <ImageButton
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:id="@+id/message_send_image"
-            android:background="@android:color/transparent"
-            android:src="@drawable/compact_camera_24"
-            android:layout_centerVertical="true"
-            />
+            <RelativeLayout
+                android:id="@+id/chat_drawer_top"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                >
 
-        <EditText
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:ems="10"
-            android:id="@+id/message_input_text"
-            android:layout_alignParentBottom="true"
-            android:layout_toLeftOf="@+id/message_send_button"
-            android:layout_toRightOf="@+id/message_send_image"
-            android:layout_toEndOf="@+id/message_send_image"
-            android:layout_alignParentTop="true" />
+                <ImageView
+                    android:id="@+id/chat_drawer_room_image"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="20dp"
+                    android:src="@drawable/decision_256"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    />
 
-        <ImageButton
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:id="@+id/message_send_button"
-            android:background="@android:color/transparent"
-            android:src="@drawable/advance_24"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            />
+                <TextView
+                    android:id="@+id/chat_drawer_room_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Raum Name"
+                    android:layout_below="@+id/chat_drawer_room_image"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    />
 
-    </RelativeLayout>
+            </RelativeLayout>
 
-</RelativeLayout>
+            <ListView
+                android:id="@+id/chat_drawer_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/chat_drawer_top"
+                android:background="@color/darkblue"
+                >
+
+            </ListView>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/chat_container"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:visibility="visible">
+
+            <ListView
+                android:id="@+id/message_list_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="45dp"
+                android:layout_marginTop="5dp"
+                android:divider="@null"
+                android:dividerHeight="0dp">
+            </ListView>
+
+            <RelativeLayout
+                android:id="@+id/chat_input_container"
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:orientation="vertical"
+                android:background="@color/white">
+
+                <ImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:id="@+id/message_send_image"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/compact_camera_24"
+                    android:layout_centerVertical="true"
+                    />
+
+                <EditText
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:ems="10"
+                    android:id="@+id/message_input_text"
+                    android:layout_alignParentBottom="true"
+                    android:layout_toLeftOf="@+id/message_send_button"
+                    android:layout_toRightOf="@+id/message_send_image"
+                    android:layout_toEndOf="@+id/message_send_image"
+                    android:layout_alignParentTop="true" />
+
+                <ImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:id="@+id/message_send_button"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/advance_24"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    />
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </android.support.v4.widget.DrawerLayout>
+</LinearLayout>

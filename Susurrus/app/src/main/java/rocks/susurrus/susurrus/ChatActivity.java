@@ -1,11 +1,15 @@
 package rocks.susurrus.susurrus;
 
 import android.content.Intent;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,19 +36,21 @@ public class ChatActivity extends ActionBarActivity {
     private RoomModel currentRoom;
 
     /**
-     *
+     * Views
      */
     private ListView messageListView;
     private EditText messageInputText;
     private ImageButton messageSendButton;
+    private DrawerLayout chatDrawerLayout;
+    private boolean chatDrawerOpen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        setAction();
         setView();
+        setAction();
 
         // start service for receiving messages
         //startService(new Intent(this, ChatService.class));
@@ -76,8 +82,21 @@ public class ChatActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        // drawer toggle requested
+        if (id == R.id.action_list) {
+
+            // drawer not open?
+            if(!chatDrawerOpen) {
+                // open it
+                chatDrawerLayout.openDrawer(Gravity.RIGHT);
+                chatDrawerOpen = true;
+            }
+            else {
+                // close it
+                chatDrawerLayout.closeDrawer(Gravity.RIGHT);
+                chatDrawerOpen = false;
+            }
+
             return true;
         }
 
@@ -99,6 +118,8 @@ public class ChatActivity extends ActionBarActivity {
 
         // setup backButton
         actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
+
     }
 
     /**
@@ -109,6 +130,7 @@ public class ChatActivity extends ActionBarActivity {
         messageListView = (ListView) findViewById(R.id.message_list_view);
         messageSendButton = (ImageButton) findViewById(R.id.message_send_button);
         messageInputText = (EditText) findViewById(R.id.message_input_text);
+        chatDrawerLayout = (DrawerLayout) findViewById(R.id.chat_drawer_layout);
 
         // set adapters
         messageAdapter = new MessageAdapter(getApplicationContext(),
@@ -119,25 +141,7 @@ public class ChatActivity extends ActionBarActivity {
         // set events
         messageInputText.setOnKeyListener(messageInputTextListener);
         messageSendButton.setOnClickListener(messageSendButtonListener);
-
-        /*discoverPeers.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(LOG_TAG, "Finding peers ...");
-
-                mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        Log.d(LOG_TAG, "... peers found.");
-                    }
-
-                    @Override
-                    public void onFailure(int reasonCode) {
-                        Log.d(LOG_TAG, "peers error: " + reasonCode + ".");
-                    }
-                });
-            }
-        });*/
+        //chatDrawerLayout.setDrawerListener(chatDrawerToggle);
     }
 
     /**
