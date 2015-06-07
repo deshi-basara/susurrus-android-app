@@ -1,7 +1,11 @@
 package rocks.susurrus.susurrus;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.transitions.everywhere.TransitionManager;
@@ -19,10 +23,17 @@ import com.wrapp.floatlabelededittext.FloatLabeledEditText;
 
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectLocalService;
+import rocks.susurrus.susurrus.services.WifiDirectService;
 
 
 public class CreateActivity extends ActionBarActivity {
     private static final String LOG_TAG = "CreateActivity";
+
+    /**
+     * Networking
+     */
+    private WifiDirectService wifiDirectService;
+    private boolean isWifiDirectServiceBound;
 
     /**
      * Views
@@ -58,6 +69,11 @@ public class CreateActivity extends ActionBarActivity {
         setView();
 
         //registerWifiRoom();
+
+        // start and bound the wifiDirectService
+        Intent intentService = new Intent(this, WifiDirectService.class);
+        startService(intentService);
+        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -208,10 +224,14 @@ public class CreateActivity extends ActionBarActivity {
     private void registerWifiRoom() {
         showWifiRoomDialog();
 
-        WifiDirectLocalService wifiDirectService = WifiDirectLocalService.getInstance();
         wifiDirectService.setupLocalService(this, roomData.toHashMap());
     }
 
+    /**
+     * Is executed by the wifiDirectService for notifying the ui of the room creation status.
+     * @param hasError
+     * @param errorCode
+     */
     public void registerWifiRoomFeedback(boolean hasError, int errorCode) {
         Log.d(LOG_TAG, "Feedback for 'registrerWifiRoomFeedback' called: " + hasError);
 
@@ -288,6 +308,22 @@ public class CreateActivity extends ActionBarActivity {
 
             // hide password input
             roomPasswordContainer.setVisibility(View.INVISIBLE);
+        }
+    };
+
+    /**
+     * Connection to the external wifiDirectService-process.
+     */
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            WifiDirectService.InstanceBinder localBinder = (WifiDirectService.InstanceBinder) service;
+            wifiDirectService = localBinder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isWifiDirectServiceBound = false;
         }
     };
 }

@@ -23,7 +23,6 @@ import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
-import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 
 /**
  * Created by simon on 04.06.15.

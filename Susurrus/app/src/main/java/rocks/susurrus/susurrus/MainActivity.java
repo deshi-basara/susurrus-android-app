@@ -30,7 +30,6 @@ import com.skyfishjy.library.RippleBackground;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
-import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 import rocks.susurrus.susurrus.network.WifiDisconnector;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.services.WifiDirectService.InstanceBinder;
@@ -93,7 +92,8 @@ public class MainActivity extends ActionBarActivity {
             wifiManager.disconnect();
 
             WifiDisconnector disconnector = new WifiDisconnector(wifiManager);
-            registerReceiver(disconnector, new IntentFilter(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION));
+            registerReceiver(disconnector, new IntentFilter(WifiManager.
+                    SUPPLICANT_STATE_CHANGED_ACTION));
         }
 
 
@@ -104,7 +104,7 @@ public class MainActivity extends ActionBarActivity {
         // start and bound the wifiDirectService
         Intent intentService = new Intent(this, WifiDirectService.class);
         startService(intentService);
-        //bindService(intentService)
+        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -135,13 +135,13 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         // register our broadcast receiver, which is called when an intentFilter matches
-        registerReceiver(wifiReceiver, wifiIntentFilter);
+        //registerReceiver(wifiReceiver, wifiIntentFilter);
     }
     /* unregister the broadcast receiver */
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(wifiReceiver);
+        //unregisterReceiver(wifiReceiver);
     }
 
     /**
@@ -312,12 +312,16 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    /**
+     * Connection to the external wifiDirectService-process.
+     */
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            InstanceBinder localBinder = (InstanceBinder)
-                    service;
-            wifiDirectService = InstanceBinder.getService();
+            InstanceBinder localBinder = (InstanceBinder) service;
+            wifiDirectService = localBinder.getService();
+            wifiDirectService.setMainActivity(MainActivity.this);
+            wifiDirectService.setRoomAdapter(roomAdapter);
             isWifiDirectServiceBound = true;
         }
 
