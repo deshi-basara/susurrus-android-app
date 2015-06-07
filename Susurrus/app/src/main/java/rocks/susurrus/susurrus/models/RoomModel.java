@@ -2,6 +2,7 @@ package rocks.susurrus.susurrus.models;
 
 import android.util.Log;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 /**
  * Data representation of one chat-room.
  */
-public class RoomModel {
+public class RoomModel implements Serializable {
     final static String LOG_TAG = "RoomModel";
 
     /**
@@ -56,6 +57,9 @@ public class RoomModel {
         Log.d(LOG_TAG, "New room added: " + this.roomName);
     }
 
+    /**
+     * Getter/Setter
+     */
     public void setPassword(String pass) {
         this.roomPassword = pass;
     }
@@ -72,6 +76,10 @@ public class RoomModel {
     }
     public String getRoomCategory() {
         return this.roomName;
+    }
+
+    public boolean hasEncryption() {
+        return this.hasEncryption();
     }
 
     /**

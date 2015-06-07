@@ -67,6 +67,7 @@ public class MainActivity extends ActionBarActivity {
      * Data
      */
     private RoomAdapter roomAdapter;
+    private RoomModel clickedRoom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +80,7 @@ public class MainActivity extends ActionBarActivity {
             Intent intentIntro = new Intent(this, IntroActivity.class);
             startActivity(intentIntro);
         }
-        else if(false) {
+        else if(true) {
             Intent intentChat = new Intent(this, ChatActivity.class);
             intentChat.putExtra("ROOM_NAME", "Simon@testing");
             startActivity(intentChat);
@@ -101,7 +102,7 @@ public class MainActivity extends ActionBarActivity {
         setView();
         //setWifiDirect();
 
-        // start and bound the wifiDirectService
+        // start and bind the wifiDirectService
         Intent intentService = new Intent(this, WifiDirectService.class);
         startService(intentService);
         bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -278,11 +279,10 @@ public class MainActivity extends ActionBarActivity {
             showRoomJoinFeedback();
 
             // get room deviceAddress and try to establish a connection
-            RoomModel clickedRoom = roomAdapter.getItem(position);
-            String clickedRoomAddr = clickedRoom.getOwnerAddr();
-            wifiDirectService.connectToLocalService(clickedRoomAddr, MainActivity.this);
+            clickedRoom = roomAdapter.getItem(position);
+            wifiDirectService.connectToLocalService(clickedRoom, MainActivity.this);
 
-            Log.d(LOG_TAG, "Clicked deviceAddress: " + clickedRoom.getOwnerAddr());
+            Log.d(LOG_TAG, "Connection to room established: " + clickedRoom.getRoomName());
         }
     };
 
@@ -304,7 +304,7 @@ public class MainActivity extends ActionBarActivity {
             public void run() {
                 // open the newly connected chat room
                 Intent chatIntent = new Intent(MainActivity.this, ChatActivity.class);
-                chatIntent.putExtra("ROOM_NAME", "SIMON");
+                chatIntent.putExtra("ROOM_NAME", clickedRoom.getRoomName());
 
                 startActivity(chatIntent);
             }
