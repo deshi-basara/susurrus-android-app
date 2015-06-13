@@ -1,5 +1,7 @@
 package rocks.susurrus.susurrus.chat.models;
 
+import android.util.Log;
+
 import java.io.Serializable;
 import java.net.InetAddress;
 
@@ -7,6 +9,7 @@ import java.net.InetAddress;
  * Data representation of one single text-message.
  */
 public class MessageModel implements Serializable {
+    static final String LOG_TAG = "MessageModel";
 
     /**
      * Attributes
@@ -39,6 +42,8 @@ public class MessageModel implements Serializable {
     public String getOwnerName() { return this.ownerName; }
 
     public Boolean isOwner() {
+        Log.d(LOG_TAG, "isOwner: " + this.owner);
+
         return this.owner;
     }
 
