@@ -35,8 +35,11 @@ public class WifiDirectService extends Service {
      */
     public static final int SERVICE_PORT = 4040;
     public static final int SERVICE_AUTH_PORT = 4041;
-    public static final int GROUP_CONNECTED = 0;
     public static final int GROUP_NOT_CONNECTED = -1;
+    public static final int GROUP_CONNECTED = 0;
+    public static final int GROUP_CREATING = 1;
+    public static final int GROUP_ERROR = 2;
+    public static final int GROUP_CREATED = 3;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
 
@@ -196,6 +199,8 @@ public class WifiDirectService extends Service {
     public void setupLocalService(final CreateActivity feedbackActivity, final RoomModel roomModel) {
         Log.d(LOG_TAG, "Registering new room ...");
 
+        feedbackActivity.registerWifiDialogUpdate(GROUP_CREATING);
+
         // get the creator's username and add it
 
         // Service information. Pass it an instance name, service type
@@ -213,7 +218,7 @@ public class WifiDirectService extends Service {
                 Log.d(LOG_TAG, "... service created.");
 
                 // send feedback
-                feedbackActivity.registerWifiRoomFeedback(false, 0);
+                feedbackActivity.registerWifiDialogUpdate(GROUP_CREATED);
             }
 
             @Override
@@ -227,7 +232,7 @@ public class WifiDirectService extends Service {
                     Log.d(LOG_TAG, "... service error code: BUSY");
                 }
 
-                feedbackActivity.registerWifiRoomFeedback(true, errorCode);
+                feedbackActivity.registerWifiDialogUpdate(GROUP_ERROR);
             }
         });
     }
@@ -250,8 +255,6 @@ public class WifiDirectService extends Service {
 
             @Override
             public void onSuccess() {
-                // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
-                Log.d(LOG_TAG, "Connection to room established");
                 feedbackActivity.showRoomJoinFeedbackUpdate(GROUP_CONNECTED);
             }
 

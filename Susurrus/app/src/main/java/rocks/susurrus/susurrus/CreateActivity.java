@@ -232,42 +232,59 @@ public class CreateActivity extends ActionBarActivity {
         wifiDirectService.setupLocalService(this, roomData);
     }
 
-    /**
-     * Is executed by the wifiDirectService for notifying the ui of the room creation status.
-     * @param hasError
-     * @param errorCode
-     */
-    public void registerWifiRoomFeedback(boolean hasError, int errorCode) {
-        Log.d(LOG_TAG, "Feedback for 'registrerWifiRoomFeedback' called: " + hasError);
-
-        // no errors
-        if(!hasError) {
-            createRoomDialog.setContent(getString(R.string.create_dialog_content_done));
-
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    // open the newly created chat room
-                    Intent chatIntent = new Intent(CreateActivity.this, ChatActivity.class);
-                    chatIntent.putExtra("ROOM_NAME", roomData.getRoomName());
-                    chatIntent.putExtra("ROOM_MODEL", roomData);
-
-                    startActivity(chatIntent);
-                }
-            }, 5000);
-        }
-    }
-
     private void showWifiRoomDialog() {
         Log.d(LOG_TAG, "showWifiRoomDialog");
 
         createRoomDialog = new MaterialDialog.Builder(CreateActivity.this)
                 .title(R.string.create_dialog_headline)
                 .content(R.string.create_dialog_content)
-                .progress(true, 0)
+                .progress(false, 100)
                 //.negativeText(R.string.main_dialog_cancel)
                 .show();
+    }
+
+    /**
+     * Is executed by the wifiDirectService for notifying the ui of the room creation status.
+     * @param creationState
+     */
+    public void registerWifiDialogUpdate(final int creationState) {
+
+        // wait 1000ms berfore updating the feedback
+        Handler uiHandler = new Handler();
+        uiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                switch(creationState) {
+                    case WifiDirectService.GROUP_CREATING:
+                        createRoomDialog.setContent(R.string.create_dialog_group_creating);
+                        createRoomDialog.incrementProgress(50);
+
+                        break;
+                    case WifiDirectService.GROUP_ERROR:
+                        createRoomDialog.setContent(R.string.create_dialog_group_error);
+
+                        break;
+                    case WifiDirectService.GROUP_CREATED:
+                        createRoomDialog.setContent(R.string.create_dialog_group_created);
+                        createRoomDialog.incrementProgress(50);
+
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // open the newly created chat room
+                                Intent chatIntent = new Intent(CreateActivity.this, ChatActivity.class);
+                                chatIntent.putExtra("ROOM_NAME", roomData.getRoomName());
+                                chatIntent.putExtra("ROOM_MODEL", roomData);
+
+                                startActivity(chatIntent);
+                            }
+                        }, 2000);
+
+                        break;
+                }
+            }
+        }, 1000);
     }
 
     /**
