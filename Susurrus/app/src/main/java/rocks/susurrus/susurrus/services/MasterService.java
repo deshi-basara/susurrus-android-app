@@ -3,6 +3,7 @@ package rocks.susurrus.susurrus.services;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -21,6 +22,10 @@ public class MasterService extends Service {
     private boolean isAuthenticated = false;
     private boolean hasChat = false;
 
+    /**
+     * Handler
+     */
+    private Handler chatHandler;
 
     /**
      * Binder
@@ -37,10 +42,6 @@ public class MasterService extends Service {
      */
     private RoomModel roomData;
 
-    public MasterService(RoomModel createdRoom) {
-        this.roomData = createdRoom;
-    }
-
     @Override
     /**
      * Binder-Interface that clients use to communicate with the service.
@@ -53,12 +54,17 @@ public class MasterService extends Service {
     /**
      * Is executed the first time the Service is started.
      */
-    public void onCreate() {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // get roomData via intent extras
+        roomData = (RoomModel) intent.getSerializableExtra("ROOM_MODEL");
+
         // start the authentication socket
-        this.initiateAuthentication();
+        //this.initiateAuthentication();
 
         // start the messaging socket
-        this.initiateChat();
+        //this.initiateChat();
+
+        return START_STICKY;
     }
 
     /**
@@ -88,7 +94,7 @@ public class MasterService extends Service {
 
         if(!this.hasChat) {
             // create a thread, for messaging with the service/room
-            ServerReceiveThread receive = new ServerReceiveThread();
+            ServerReceiveThread receive = new ServerReceiveThread(this.chatHandler);
 
             this.chatThread = new Thread(receive);
             this.chatThread.start();
@@ -97,6 +103,22 @@ public class MasterService extends Service {
 
             Log.d(LOG_TAG, "AuthenticationThread started.");
         }
+    }
+
+    /**
+     * Getter/Setter
+     */
+    public void setChatHandler(Handler handler) {
+        Log.d(LOG_TAG, "ChatHandler set");
+
+        this.chatHandler = handler;
+    }
+
+    public void startChatThread() {
+        this.initiateChat();
+    }
+
+    public void startAuthThread() {
 
     }
 }

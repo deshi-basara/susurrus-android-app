@@ -1,6 +1,8 @@
 package rocks.susurrus.susurrus.threads;
 
+import android.os.Message;
 import android.util.Log;
+import android.os.Handler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,10 +20,18 @@ import rocks.susurrus.susurrus.services.WifiDirectService;
 public class ServerReceiveThread implements Runnable {
     public static final String LOG_TAG = "ServerReceiveThread";
 
+    /**
+     * Handler
+     */
+    private Handler handler;
+
+    /**
+     * Networking
+     */
     private ServerSocket socket;
 
-    public ServerReceiveThread(){
-
+    public ServerReceiveThread(Handler chatHandler){
+        this.handler = chatHandler;
     }
 
     @Override
@@ -48,12 +58,15 @@ public class ServerReceiveThread implements Runnable {
                 // get the ip of the client and add it to the message
                 InetAddress clientAddress = connectedClient.getInetAddress();
                 receivedMessage.setOwnerAddress(clientAddress);
+                receivedMessage.setOwnership(false);
 
                 Log.d(LOG_TAG, "New message from " + clientAddress + ": " + receivedMessage.
                         getMessage());
 
                 // close the connection and add message to the chat
                 connectedClient.close();
+
+                publishMessage(receivedMessage);
                 //publishProgress(receivedMessage);
             }
 
@@ -74,5 +87,16 @@ public class ServerReceiveThread implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Broadcasts the receivedMessage to the handler in the ui-thread.
+     * @param receivedMessage Message sent by a client to the master-socket.
+     */
+    private void publishMessage(MessageModel receivedMessage) {
+        Log.d(LOG_TAG, "PublishMessage");
+
+        Message outputMessage = this.handler.obtainMessage(1, receivedMessage);
+        outputMessage.sendToTarget();
     }
 }

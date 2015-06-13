@@ -1,9 +1,14 @@
 package rocks.susurrus.susurrus;
 
-import android.app.Notification;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.p2p.WifiP2pManager;
+import android.content.ServiceConnection;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -24,11 +29,21 @@ import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.services.MasterService;
+import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
 
 
 public class ChatActivity extends ActionBarActivity {
     private static final String LOG_TAG = "ChatActivity";
+
+    /**
+     * Threads/Handler/Services
+     */
+    MasterService masterService;
+    Handler chatHandler;
+    Handler authHandler;
+    boolean isMasterServiceBound = false;
 
     /**
      * Data
@@ -58,11 +73,41 @@ public class ChatActivity extends ActionBarActivity {
         //startService(new Intent(this, ChatService.class));
 
         setupData();
+        setupHandlers();
+        setupServices();
     }
 
     private void setupData() {
         // get needed data from intent
         this.currentRoom = (RoomModel) getIntent().getSerializableExtra("ROOM_MODEL");
+    }
+
+    private void setupServices() {
+        Intent intentService = new Intent(this, MasterService.class);
+        intentService.putExtra("ROOM_MODEL", this.currentRoom);
+        startService(intentService);
+        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private void setupHandlers() {
+        // attach handler objects to the ui-thread
+        this.chatHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            /**
+             * Is executed whenever the handler receives a new message from our chatService-
+             * thread.
+             */
+            public void handleMessage(Message inputMessage) {
+                MessageModel receivedMessage = (MessageModel) inputMessage.obj;
+
+                // what kind of message did we receive?
+                //@todo implement switch case
+
+                Log.d(LOG_TAG, "handleMessage: " + receivedMessage.getMessage());
+
+                addMessage(receivedMessage);
+            }
+        };
     }
 
     @Override
@@ -166,24 +211,26 @@ public class ChatActivity extends ActionBarActivity {
     }
 
     /**
-     * Adds a new message to the messageAdapter and resets the messageInputText.
-     * @return True, if message was added successfully.
+     * Fetches a new message from the chat-input, resets the chat-input and creates a new
+     * MessageModel that is returned.
+     * @return MessageModel
      */
-    private Boolean addNewMessage() {
+    private MessageModel getMessageFromInput() {
         // reset input text field
         String messageText = messageInputText.getText().toString();
         messageInputText.setText("");
 
-        Log.d(LOG_TAG, "New message: " + messageText);
-
-        // add message to the adapter
         MessageModel newMessage = new MessageModel(true, "Cooler Benutzer", messageText);
+        return newMessage;
+    }
+
+    /**
+     * Adds a new message to the messageAdapter.
+     * @param newMessage MessageModel that should be added.
+     */
+    private void addMessage(MessageModel newMessage) {
+        // add message to the adapter
         messageAdapter.add(newMessage);
-
-        // send/broadcast message
-        distributeNewMessage(newMessage);
-
-        return true;
     }
 
     /**
@@ -193,7 +240,7 @@ public class ChatActivity extends ActionBarActivity {
      * If the user is the room owner:   Send message directly to all connected peers.
      * @param message
      */
-    private void distributeNewMessage(MessageModel message) {
+    private void distributeMessage(MessageModel message) {
         Log.d(LOG_TAG, "Distributing message ...");
 
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
@@ -222,8 +269,12 @@ public class ChatActivity extends ActionBarActivity {
             // send message if the user tabs the enter button
             if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
                     (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                Log.d(LOG_TAG, "messageInputTextListener");
-                return addNewMessage();
+
+                MessageModel inputMessage = getMessageFromInput();
+                addMessage(inputMessage);
+                distributeMessage(inputMessage);
+
+                return true;
             }
             return false;
         }
@@ -235,8 +286,28 @@ public class ChatActivity extends ActionBarActivity {
     private View.OnClickListener messageSendButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Log.d(LOG_TAG, "messageSendButtonListener");
-            addNewMessage();
+            MessageModel inputMessage = getMessageFromInput();
+            addMessage(inputMessage);
+            distributeMessage(inputMessage);
+        }
+    };
+
+    /**
+     * Connection to the external wifiDirectService-process.
+     */
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MasterService.InstanceBinder localBinder = (MasterService.InstanceBinder) service;
+            masterService = localBinder.getService();
+            masterService.setChatHandler(chatHandler);
+            masterService.startChatThread();
+            isMasterServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isMasterServiceBound = false;
         }
     };
 }
