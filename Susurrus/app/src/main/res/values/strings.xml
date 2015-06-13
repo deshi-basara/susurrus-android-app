@@ -74,8 +74,10 @@
     <string name="create_room_encryption">Passwort</string>
     <string name="create_room_encryption_error">Kein gültiges Passwort eingegeben.</string>
     <string name="create_dialog_headline">Erstelle Raum</string>
-    <string name="create_dialog_content">Einen Moment Geduld bitte ...</string>
-    <string name="create_dialog_content_done">... Raum erfolgreich erstellt</string>
+    <string name="create_dialog_content">Einen Moment Geduld ...</string>
+    <string name="create_dialog_group_error">Ein unbekannter Fehler ist aufgetreten</string>
+    <string name="create_dialog_group_creating">Raum wird erstellt ...</string>
+    <string name="create_dialog_group_created">Raum erfolgreich erstellt</string>
 
     <!--
         Chat Activity
