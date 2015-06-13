@@ -15,7 +15,21 @@
     <item name="textlight" type="color">#A0A0A0</item>
     <item name="darkblue" type="color">#3f51b5</item>
 
-    <item name="error" type="color">#d50000</item>
+    <item name="error" type="color">#e44d1f</item>
+
+    <item name="susurrus_white" type="color">#ffffff</item>
+    <item name="susurrus_orange" type="color">#f28b13</item>
+    <item name="susurrus_blue" type="color">#1177bc</item>
+    <item name="susurrus_light" type="color">#f5f7f8</item>
+    <item name="susurrus_purple" type="color">#4053a0</item>
+    <item name="susurrus_grey" type="color">#596474</item>
+
+
+
+
+
+
+
 
     <integer-array name="androidcolors">
         <item>@color/blue</item>
@@ -32,6 +46,14 @@
         <item>@color/darkblue</item>
 
         <item>@color/error</item>
+
+        <item>@color/susurrus_white</item>
+        <item>@color/susurrus_orange</item>
+        <item>@color/susurrus_blue</item>
+        <item>@color/susurrus_light</item>
+        <item>@color/susurrus_purple</item>
+        <item>@color/susurrus_grey</item>
+
     </integer-array>
 
 
