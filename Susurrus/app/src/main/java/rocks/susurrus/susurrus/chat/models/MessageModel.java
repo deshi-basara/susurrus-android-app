@@ -45,4 +45,7 @@ public class MessageModel implements Serializable {
     public void setOwnerAddress(InetAddress ip) {
         this.ownerAddress = ip;
     }
+    public void setOwnership(boolean hasOwnership) {
+        this.owner = hasOwnership;
+    }
 }
