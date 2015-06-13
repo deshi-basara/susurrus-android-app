@@ -15,7 +15,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,9 +23,6 @@ import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
-import rocks.susurrus.susurrus.tasks.ClientAuthenticationTask;
-import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
-import rocks.susurrus.susurrus.threads.ServerReceiveThread;
 
 /**
  * Created by simon on 04.06.15.
@@ -39,6 +35,8 @@ public class WifiDirectService extends Service {
      */
     public static final int SERVICE_PORT = 4040;
     public static final int SERVICE_AUTH_PORT = 4041;
+    public static final int GROUP_CONNECTED = 0;
+    public static final int GROUP_NOT_CONNECTED = -1;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
 
@@ -82,6 +80,7 @@ public class WifiDirectService extends Service {
     }
     public void setMainActivity(MainActivity a) {
         this.mainActivity = a;
+        this.wifiDirectReceiver.setMainActivity(a);
     }
     public void setRoomAdapter(RoomAdapter r) {
         this.roomAdapter = r;
@@ -113,6 +112,8 @@ public class WifiDirectService extends Service {
      */
     public void onDestroy() {
         super.onDestroy();
+
+        Log.d(LOG_TAG, "ONDESTROY!!!!!!!!!!!!!!");
 
         // unregister WifiP2P-broadcast listener
         unregisterReceiver(this.wifiDirectReceiver);
@@ -148,7 +149,6 @@ public class WifiDirectService extends Service {
         this.wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
         this.wifiDirectReceiver.setWifiDirectManager(this.wifiDirectManager);
         this.wifiDirectReceiver.setWifiDirectChannel(this.wifiDirectChannel);
-        //wifiDirectReceiver.setActivity(this);
 
         // setup the wifi direct service
         this.setupLocalServiceDiscovery();
@@ -194,7 +194,9 @@ public class WifiDirectService extends Service {
      * Setups an own local "susurrus"-service (which represents a chat room).
      */
     public void setupLocalService(final CreateActivity feedbackActivity, final RoomModel roomModel) {
-        Log.d(LOG_TAG, "Start registering a new room service ...");
+        Log.d(LOG_TAG, "Registering new room ...");
+
+        // get the creator's username and add it
 
         // Service information. Pass it an instance name, service type
         // _protocol._transportlayer, and the map containing
@@ -212,9 +214,6 @@ public class WifiDirectService extends Service {
 
                 // send feedback
                 feedbackActivity.registerWifiRoomFeedback(false, 0);
-
-                Intent intentService = new Intent(WifiDirectService.this, MasterService.class);
-                startService(intentService);
             }
 
             @Override
@@ -253,18 +252,14 @@ public class WifiDirectService extends Service {
             public void onSuccess() {
                 // WiFiDirectBroadcastReceiver will notify us. Ignore for now.
                 Log.d(LOG_TAG, "Connection to room established");
-
-                // authenticate with room
-                Log.d(LOG_TAG, "Authenticating with room");
-
-                new ClientAuthenticationTask(roomModel.getOwnerAddr(), roomModel).execute();
-
-                feedbackActivity.showRoomJoinFeedbackUpdate();
+                feedbackActivity.showRoomJoinFeedbackUpdate(GROUP_CONNECTED);
             }
 
             @Override
             public void onFailure(int reason) {
                 Log.d(LOG_TAG, "Connection to room failed: " + reason);
+
+                feedbackActivity.showRoomJoinFeedbackUpdate(GROUP_NOT_CONNECTED);
             }
         });
     }

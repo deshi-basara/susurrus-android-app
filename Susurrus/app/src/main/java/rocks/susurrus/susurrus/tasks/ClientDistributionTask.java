@@ -1,9 +1,6 @@
 package rocks.susurrus.susurrus.tasks;
 
-import android.app.ActivityManager;
-import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Message;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -13,13 +10,11 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.List;
 
 import rocks.susurrus.susurrus.ChatActivity;
-import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
-import rocks.susurrus.susurrus.network.WifiDirectLocalService;
+import rocks.susurrus.susurrus.services.WifiDirectService;
 
 /**
  * Created by simon on 06.06.15.
@@ -70,9 +65,10 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
             // connect client to the server
             client.connect(new InetSocketAddress(this.serverAddress,
-                    WifiDirectLocalService.SERVICE_PORT));
+                    WifiDirectService.SERVICE_PORT));
 
             Log.d(LOG_TAG, "Client successfully connected to " + this.serverAddress);
+            Log.d(LOG_TAG, messageModel[0].toString());
 
             // get the client's output stream and write the message to it
             OutputStream outputStream = client.getOutputStream();

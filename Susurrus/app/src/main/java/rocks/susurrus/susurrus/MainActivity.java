@@ -1,6 +1,5 @@
 package rocks.susurrus.susurrus;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,9 +9,12 @@ import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -33,6 +35,7 @@ import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.network.WifiDisconnector;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.services.WifiDirectService.InstanceBinder;
+import rocks.susurrus.susurrus.tasks.ClientAuthenticationTask;
 
 public class MainActivity extends ActionBarActivity {
     private static final String LOG_TAG = "MainActivity";
@@ -49,8 +52,14 @@ public class MainActivity extends ActionBarActivity {
     private WifiDirectBroadcastReceiver wifiReceiver;
     //private WifiDirectLocalService wifiDirectService;
 
+    /**
+     * Services/Threads/Handler
+     */
     private WifiDirectService wifiDirectService;
     private boolean isWifiDirectServiceBound;
+    private Handler authHandler;
+    private AsyncTask authTask;
+
 
     /**
      * Views
@@ -97,7 +106,8 @@ public class MainActivity extends ActionBarActivity {
                     SUPPLICANT_STATE_CHANGED_ACTION));
         }
 
-        setView();
+        setupView();
+        setupHandler();
 
         // start and bind the wifiDirectService
         Intent intentService = new Intent(this, WifiDirectService.class);
@@ -142,29 +152,22 @@ public class MainActivity extends ActionBarActivity {
         //unregisterReceiver(wifiReceiver);
     }
 
+    @Override
     /**
-     * Checks if the user is already connected to a wifi access point.
-     * @return True, if connected.
+     * Is executed, when the Activity is destroyed
      */
-    private boolean isAlreadyConnected() {
-        // get an instance of the wifi-manager and information of the current access point
-        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        SupplicantState supplicantState = wifiInfo.getSupplicantState();
-
-        // does the supplicant wifi-cli have a completed-state?
-        if(SupplicantState.COMPLETED.equals(supplicantState)) {
-            // completed state, connected to access point
-            Log.d(LOG_TAG, "Already connected to an access point");
-
-            return true;
-        }
-        else {
-            return false;
+    protected void onDestroy() {
+        // destroy running AsyncTasks (needed for lower Android-versions)
+        if(this.authTask != null) {
+            Log.d(LOG_TAG, "Destroying: authTask [AsyncTask]");
+            this.authTask.cancel(true);
         }
     }
 
-    private void setView() {
+    /**
+     * Setups all needed views, events, adapters, ...
+     */
+    private void setupView() {
         // get needed views
         createButton = (FloatingActionButton) findViewById(R.id.button_create);
         discoverButton = (Button) findViewById(R.id.action_discover);
@@ -187,6 +190,43 @@ public class MainActivity extends ActionBarActivity {
         roomsList.setEmptyView(emptyContainer);
 
         //roomAdapter.add(new RoomModel("Besitzer", "127.0.0.1", "Raum Name", "Freiheit", "img", true));
+    }
+
+    private void setupHandler() {
+        // attach handler objects to the ui-thread
+        this.authHandler = new Handler(Looper.getMainLooper()) {
+            @Override
+            /**
+             * Is executed whenever the handler receives a new message from our Auth-AsyncTask.
+             */
+            public void handleMessage(Message inputMessage) {
+                Log.d(LOG_TAG, "what: " + inputMessage.what);
+
+                showRoomJoinFeedbackUpdate(inputMessage.what);
+            }
+        };
+    }
+
+    /**
+     * Checks if the user is already connected to a wifi access point.
+     * @return True, if connected.
+     */
+    private boolean isAlreadyConnected() {
+        // get an instance of the wifi-manager and information of the current access point
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        SupplicantState supplicantState = wifiInfo.getSupplicantState();
+
+        // does the supplicant wifi-cli have a completed-state?
+        if(SupplicantState.COMPLETED.equals(supplicantState)) {
+            // completed state, connected to access point
+            Log.d(LOG_TAG, "Already connected to an access point");
+
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -217,9 +257,6 @@ public class MainActivity extends ActionBarActivity {
         rippleBackground.stopRippleAnimation();
     }
 
-    public void updateRooms() {
-
-    }
 
     /**
      * On click listener: createButton.
@@ -252,30 +289,93 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
-    public void showRoomJoinFeedback() {
+    private void showRoomJoinFeedback() {
         roomJoinDialog = new MaterialDialog.Builder(MainActivity.this)
                 .title(R.string.main_dialog_headline)
                 .content(R.string.main_dialog_content)
-                .progress(true, 0)
+                .progress(false, 100)
                 .negativeText(R.string.main_dialog_cancel)
                 .show();
     }
 
-    public void showRoomJoinFeedbackUpdate() {
-        roomJoinDialog.setContent("... beigetreten");
+    public void showRoomJoinFeedbackUpdate(final int authenticationState) {
 
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        // delay ui-update to make messages readable
+        Handler delayUi = new Handler();
+        delayUi.postDelayed(new Runnable() {
             @Override
             public void run() {
-                // open the newly connected chat room
-                Intent chatIntent = new Intent(MainActivity.this, ChatActivity.class);
-                chatIntent.putExtra("ROOM_NAME", clickedRoom.getRoomName());
 
-                startActivity(chatIntent);
+                // which authentication state does the client have?
+                switch(authenticationState) {
+                    case WifiDirectService.GROUP_CONNECTED:
+                        roomJoinDialog.setContent(R.string.main_dialog_group_connected);
+                        roomJoinDialog.incrementProgress(25);
+
+                        break;
+                    case WifiDirectService.GROUP_NOT_CONNECTED:
+                        roomJoinDialog.setContent(R.string.main_dialog_group_not_connected);
+                        //@todo stop joining
+
+                        break;
+                    case ClientAuthenticationTask.SOCKET_CONNECTED:
+                        roomJoinDialog.setContent(R.string.main_dialog_connected);
+                        roomJoinDialog.incrementProgress(25);
+
+                        break;
+                    case ClientAuthenticationTask.SOCKET_PASSWORD_NEEDED:
+                        //@todo insert password
+
+                        break;
+                    case ClientAuthenticationTask.SOCKET_PASSWORD_WRONG:
+                        // wrong password, redo the authentication
+
+                        //@todo enter new password
+                        startAuthentication();
+
+                        break;
+                    case ClientAuthenticationTask.SOCKET_AUTHENTICATED:
+                        roomJoinDialog.setContent(R.string.main_dialog_authenticated);
+                        roomJoinDialog.incrementProgress(25);
+
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                roomJoinDialog.incrementProgress(25);
+
+                                    // open the newly connected chat room
+                                    Intent chatIntent = new Intent(MainActivity.this,
+                                            ChatActivity.class);
+                                    chatIntent.putExtra("ROOM_NAME", clickedRoom.getRoomName());
+
+                                    startActivity(chatIntent);
+                                }
+                        }, 2000);
+
+                        break;
+                    case ClientAuthenticationTask.SOCKET_EXCEPTION:
+                        roomJoinDialog.setContent(R.string.main_dialog_authenticated);
+                        roomJoinDialog.incrementProgress(100);
+
+                        break;
+                }
+
             }
-        }, 5000);
+        }, 1000);
+    }
 
+    public Boolean startAuthentication() {
+        Log.d(LOG_TAG, "startAuthentication");
+
+        // get an instance of the wifiDirectReceiver
+        WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
+
+        this.authTask = new ClientAuthenticationTask(this.authHandler, MainActivity.this,
+                wifiDirectReceiver.getMasterAddress())
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        return true;
     }
 
     /**

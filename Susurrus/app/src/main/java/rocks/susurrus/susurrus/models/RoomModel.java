@@ -3,11 +3,10 @@ package rocks.susurrus.susurrus.models;
 import android.util.Log;
 
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import rocks.susurrus.susurrus.network.WifiDirectLocalService;
+import rocks.susurrus.susurrus.services.WifiDirectService;
 
 /**
  * Data representation of one chat-room.
@@ -79,7 +78,7 @@ public class RoomModel implements Serializable {
     }
 
     public boolean hasEncryption() {
-        return this.hasEncryption();
+        return this.roomEncrypted;
     }
 
     /**
@@ -88,7 +87,7 @@ public class RoomModel implements Serializable {
      */
     public Map toHashMap() {
         Map roomMap = new HashMap();
-        roomMap.put("port", String.valueOf(WifiDirectLocalService.SERVICE_PORT));
+        roomMap.put("port", String.valueOf(WifiDirectService.SERVICE_PORT));
         roomMap.put("user_name", this.ownerName);
         roomMap.put("room_name", this.roomName);
         roomMap.put("room_category", this.roomCategory);

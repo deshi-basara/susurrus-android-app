@@ -23,7 +23,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.wrapp.floatlabelededittext.FloatLabeledEditText;
 
 import rocks.susurrus.susurrus.models.RoomModel;
-import rocks.susurrus.susurrus.network.WifiDirectLocalService;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 
 

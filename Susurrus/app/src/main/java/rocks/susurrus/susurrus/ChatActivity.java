@@ -30,7 +30,6 @@ import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.services.MasterService;
-import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
 
 
@@ -161,7 +160,7 @@ public class ChatActivity extends ActionBarActivity {
         // setup actionBar
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle(actionTitle);
-        actionBar.setSubtitle("4 Teilnehmer");
+        actionBar.setSubtitle("1 Teilnehmer");
 
         // setup backButton
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -243,6 +242,7 @@ public class ChatActivity extends ActionBarActivity {
     private void distributeMessage(MessageModel message) {
         Log.d(LOG_TAG, "Distributing message ...");
 
+        // get an instance of the wifiDirectReceiver
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
 
         // is the current user the server owner or just a client?
@@ -302,6 +302,7 @@ public class ChatActivity extends ActionBarActivity {
             masterService = localBinder.getService();
             masterService.setChatHandler(chatHandler);
             masterService.startChatThread();
+            masterService.startAuthThread();
             isMasterServiceBound = true;
         }
 

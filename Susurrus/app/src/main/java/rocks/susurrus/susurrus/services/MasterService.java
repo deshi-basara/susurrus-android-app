@@ -119,6 +119,6 @@ public class MasterService extends Service {
     }
 
     public void startAuthThread() {
-
+        this.initiateAuthentication();
     }
 }

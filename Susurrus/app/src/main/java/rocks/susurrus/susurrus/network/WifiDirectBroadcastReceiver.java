@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import rocks.susurrus.susurrus.MainActivity;
+
 /**
  * A BroadcastReceiver that notifies of important Wi-Fi p2p events.
  * Allow only one instance of the class by using the Singleton pattern.
@@ -32,7 +34,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
      */
     private WifiP2pManager wifiManager;
     private WifiP2pManager.Channel wifiChannel;
-    private Activity baseActivity;
+    private MainActivity mainActivity;
 
     /**
      * Data
@@ -128,6 +130,10 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                             // not the chat-room owner, has to be a client instead
                             else if(info.groupFormed) {
                                 isMaster = false;
+
+                                // start authentication, after we have received the address
+                                // of the authentication-socket
+                                mainActivity.startAuthentication();
                             }
 
                             Log.d(LOG_TAG, "IsServer: " + isMaster);
@@ -179,8 +185,8 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     public void setWifiDirectChannel(WifiP2pManager.Channel channel) {
         this.wifiChannel = channel;
     }
-    public void setActivity(Activity activity) {
-        this.baseActivity = activity;
+    public void setMainActivity(MainActivity activity) {
+        this.mainActivity = activity;
     }
 
     public InetAddress getMasterAddress() {

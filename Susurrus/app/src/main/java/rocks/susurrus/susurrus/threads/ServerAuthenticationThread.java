@@ -73,20 +73,9 @@ public class ServerAuthenticationThread implements Runnable {
 
                 authClient.close();
             }
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
-        } /*finally{
-            if (client != null) {
-                if (socket.isConnected()) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }*/
-
+        }
     }
 
     /**
@@ -97,7 +86,7 @@ public class ServerAuthenticationThread implements Runnable {
         try {
             // make sure you close the socket upon exiting
             authSocket.close();
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
         }
     }

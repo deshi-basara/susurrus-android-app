@@ -25,8 +25,13 @@
     <!-- Main Activity Connection Dialog -->
     <string name="main_dialog_headline">Verbinde mit Chat</string>
     <string name="main_dialog_content">
-        Einen Moment Geduld bitte ...
+        Baue Verbindung auf ...
     </string>
+    <string name="main_dialog_group_connected">Chat akzeptiert die Verbindung ...</string>
+    <string name="main_dialog_group_not_connected">Chat akzeptiert keine Verbindung ...</string>
+    <string name="main_dialog_connected">Chat ist erreichbar ...</string>
+    <string name="main_dialog_authenticated">Du wirst hinzugefügt ...</string>
+    <string name="main_dialog_exception">Ein unerwarteter Fehler ist aufgetreten!</string>
     <string name="main_dialog_cancel">Abbrechen</string>
 
 
