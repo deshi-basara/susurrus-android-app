@@ -68,11 +68,14 @@
             <ListView
                 android:id="@+id/message_list_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="45dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="50dp"
                 android:layout_marginTop="5dp"
                 android:divider="@null"
-                android:dividerHeight="0dp">
+                android:dividerHeight="0dp"
+                android:stackFromBottom="true"
+                android:transcriptMode="alwaysScroll"
+                >
             </ListView>
 
             <RelativeLayout

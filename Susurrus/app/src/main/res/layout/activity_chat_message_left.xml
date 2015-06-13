@@ -6,7 +6,7 @@
     <RelativeLayout
         android:id="@+id/single_message_container"
         android:layout_width="fill_parent"
-        android:layout_height="166dp"
+        android:layout_height="wrap_content"
         android:layout_margin="5dp" >
 
         <de.hdodenhof.circleimageview.CircleImageView
@@ -17,34 +17,46 @@
             android:src="@drawable/profile_night_portrait_96"
             app:border_width="2dp"
             app:border_color="@color/white"
-            android:layout_below="@+id/single_message_username"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
 
-        <TextView
-            android:id="@+id/single_message_username"
+        <RelativeLayout
+            android:id="@+id/single_message_content_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Benutzernamen"
-            android:layout_alignParentTop="true"
-            android:layout_alignLeft="@+id/single_message_content"
-            android:layout_alignStart="@+id/single_message_content" />
-
-        <TextView
-            android:id="@+id/single_message_content"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:padding="10dp"
-            android:text="Hello bubbles!"
-            android:textColor="@android:color/primary_text_light"
-            android:layout_gravity="center_vertical"
-            android:layout_alignTop="@+id/profile_image"
             android:layout_toRightOf="@+id/profile_image"
-            android:layout_toEndOf="@+id/profile_image"
+            android:background="@color/susurrus_white"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:layout_marginLeft="5dp"
-            android:layout_marginTop="5dp"/>
+            >
+
+            <TextView
+                android:id="@+id/single_message_username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="Benutzernamen"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/susurrus_blue"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                 />
+
+            <TextView
+                android:id="@+id/single_message_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/single_message_username"
+                android:text="Hello bubbles!"
+                android:textColor="@android:color/primary_text_light"
+                android:layout_gravity="center_vertical"
+                android:paddingBottom="10dp"
+                />
+
+        </RelativeLayout>
 
     </RelativeLayout>
 
