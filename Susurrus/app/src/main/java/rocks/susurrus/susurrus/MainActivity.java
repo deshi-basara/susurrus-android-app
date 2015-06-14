@@ -307,6 +307,17 @@ public class MainActivity extends ActionBarActivity {
         }
     };
 
+    /**
+     * Shows a password-dialog that updates the password-attribute of the clickedRoom (RoomModel).
+     *
+     * Executed with "boolean = true":  Wait for password-input and start the "joining-workflow"
+     *                                  by calling "showJoiningDialog" after onInput.
+     *
+     * Executed with "boolean = false": User entered a wrong password and needs to input a new
+     *                                  one. Execute "startAuthentication" directly after onInput.
+     *
+     * @param firstAuthentication
+     */
     private void showPasswordDialog(final boolean firstAuthentication) {
 
         // show a password dialog, before joining
@@ -326,11 +337,10 @@ public class MainActivity extends ActionBarActivity {
                             clickedRoom.setPassword(enteredPassword);
 
                             // first authentication try?
-                            if(firstAuthentication) {
+                            if (firstAuthentication) {
                                 // first time, start joining normally
                                 showJoiningDialog();
-                            }
-                            else {
+                            } else {
                                 // not the first time, client must have entered a wrong password.
                                 // Try authentication one more time
                                 startAuthentication();
@@ -341,16 +351,20 @@ public class MainActivity extends ActionBarActivity {
                 .negativeText(R.string.main_dialog_cancel)
                 .show();
 
+        // give user feedback, that he entered a wrong password
         if(firstAuthentication) {
             roomPasswordDialog.setContent(R.string.main_dialog_password_content);
         }
         else {
-            // give user feedback, that he entered a wrong password
             roomPasswordDialog.setContent(R.string.main_dialog_password_wrong);
         }
 
     }
 
+    /**
+     * Starts the "joining-workflow" and gives visual feedback about the "joining-status"
+     * Call this method only once.
+     */
     private void showJoiningDialog() {
 
         // show a normal progress dialog
@@ -366,6 +380,10 @@ public class MainActivity extends ActionBarActivity {
         wifiDirectService.connectToLocalService(clickedRoom, MainActivity.this);
     }
 
+    /**
+     * Updates the roomJoinDialog-MaterialDialog with the current connection/authentication-state.
+     * @param authenticationState
+     */
     public void showRoomJoinFeedbackUpdate(final int authenticationState) {
 
         if(roomJoinDialog == null) {
@@ -438,7 +456,11 @@ public class MainActivity extends ActionBarActivity {
         }, 1000);
     }
 
-    public Boolean startAuthentication() {
+    /**
+     * Initiates and starts an authentication-request-task.
+     * @return
+     */
+    public void startAuthentication() {
         Log.d(LOG_TAG, "startAuthentication");
 
         // create a new authentication model
@@ -455,8 +477,6 @@ public class MainActivity extends ActionBarActivity {
                 wifiDirectReceiver.getMasterAddress(),
                 authRequest
         ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-        return true;
     }
 
     /**
