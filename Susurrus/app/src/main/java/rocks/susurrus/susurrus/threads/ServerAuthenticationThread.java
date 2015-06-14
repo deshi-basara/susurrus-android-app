@@ -3,11 +3,17 @@ package rocks.susurrus.susurrus.threads;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.AuthModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 
@@ -20,7 +26,7 @@ public class ServerAuthenticationThread implements Runnable {
     /**
      * Networking
      */
-    private ArrayList<InetAddress> authenticatedClients;
+    public static ArrayList<InetAddress> authenticatedClients;
     private ServerSocket authSocket;
 
     /**
@@ -59,21 +65,49 @@ public class ServerAuthenticationThread implements Runnable {
                 // is newly connected client already authenticated?
                 InetAddress authClientAddress = authClient.getInetAddress();
                 if(!this.authenticatedClients.contains(authClientAddress)) {
-                    // not connected,
+                    // not connected yet, get client's input-stream, buffer it and read
+                    // buffered messages
+                    InputStream inputStream = authClient.getInputStream();
+                    ObjectInputStream objectIS = new ObjectInputStream(inputStream);
+                    AuthModel authRequest = (AuthModel) objectIS.readObject();
+
+                    Log.d(LOG_TAG, "Authentication: " + authRequest.getRoomPassword());
+                    Log.d(LOG_TAG, "hasPassword: "  + administratedRoom.hasEncryption());
+
+                    // valid auth-request?
+
                     // check if the started Room has a password
+                    boolean validPassword = false;
                     if(administratedRoom.hasEncryption()) {
-                        //@todo check if the encryption passwords match
+                        // did client send correct password
+                        validPassword = isValidPassword(authRequest.getRoomPassword());
                     }
 
-                    // add client to the authenticatedClients-list
-                    authenticatedClients.add(authClientAddress);
+                    // check if password is valid, if needed
+                    if(administratedRoom.hasEncryption() && !validPassword) {
+                        // not valid, set response to "not authenticated"
+                        authRequest.setAuthenticationStatus(false);
+                    }
+                    else {
+                        // no password needed or correct, add client to the authenticated-
+                        // Clients-list and set response to "authenticated"
+                        authenticatedClients.add(authClientAddress);
+                        authRequest.setAuthenticationStatus(true);
+                    }
 
+                    // get the output-Stream of the client and send the response
+                    OutputStream outputStream = authClient.getOutputStream();
+                    new ObjectOutputStream(outputStream).writeObject(authRequest);
+
+                    Log.d(LOG_TAG, "Authentication: " + authRequest.getAuthenticationStatus());
                     Log.d(LOG_TAG, "New Authentication: " + authClientAddress);
                 }
 
                 authClient.close();
             }
         } catch(IOException e) {
+            e.printStackTrace();
+        } catch(ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -91,4 +125,28 @@ public class ServerAuthenticationThread implements Runnable {
         }
     }
 
+
+    private boolean isValidRequest(AuthModel request) {
+        try {
+            String passwordString = request.getRoomPassword();
+            String publicString = request.getPublicString();
+        } catch(NoSuchMethodError e) {
+            e.printStackTrace();
+
+            return false;
+        }
+
+        //@todo isempty?
+
+        return true;
+    }
+
+    private boolean isValidPassword(String password) {
+        if(password.equals(this.administratedRoom.getRoomPassword())) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }

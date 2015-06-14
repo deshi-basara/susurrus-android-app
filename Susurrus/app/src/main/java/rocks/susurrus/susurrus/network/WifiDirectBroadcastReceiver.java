@@ -39,7 +39,6 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
     /**
      * Data
      */
-    private List peers = new ArrayList();
     private boolean isMaster = true;
     private InetAddress masterAddress;
 
@@ -82,17 +81,97 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
         // Respond to peer-list changes
         else if(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
             // Call WifiP2pManager.requestPeers() to get a list of current peers
-            /*Log.d(LOG_TAG, "WIFI_P2P_PEERS_CHANGED_ACTION");
+            Log.d(LOG_TAG, "WIFI_P2P_PEERS_CHANGED_ACTION");
+
+            // broadcast received before having a valid wifiManager instance?
+            if(this.wifiManager == null) {
+                return;
+            }
+            else {
+                // get network information
+                NetworkInfo networkInfo = (NetworkInfo) intent
+                        .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+
+                if(networkInfo == null) {
+                    return;
+                }
+
+                if(networkInfo.isConnected() && masterAddress == null){
+                    this.wifiManager.requestConnectionInfo(wifiChannel, new WifiP2pManager.ConnectionInfoListener() {
+
+                        @Override
+                        public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                            masterAddress = info.groupOwnerAddress;
+
+                            Log.d(LOG_TAG, "Group owner address: " + masterAddress);
+                            Log.d(LOG_TAG, "Group formed: " + info.groupFormed);
+                            Log.d(LOG_TAG, "Group owner: " + info.isGroupOwner);
+
+                            // is our user the chat-room owner?
+                            if(info.groupFormed && info.isGroupOwner) {
+                                // is owner, mark the user as owner create a server instance
+                                isMaster = true;
+                            }
+                            // not the chat-room owner, has to be a client instead
+                            else if(info.groupFormed) {
+                                isMaster = false;
+
+                                // start authentication, after we have received the address
+                                // of the authentication-socket
+                                mainActivity.startAuthentication();
+                            }
+
+                            Log.d(LOG_TAG, "IsServer: " + isMaster);
+                        }
+                    });
+                }
+            }
 
             // request available peers from the wifi p2p manager. This is an
             // asynchronous call and the calling activity is notified with a
             // callback on PeerListListener.onPeersAvailable()
-            if(this.wifiManager != null) {
+            /*if(this.wifiManager != null) {
                 Log.d(LOG_TAG, "mManager requesting peers ...");
                 this.wifiManager.requestPeers(this.wifiChannel, peerListListener);
             }
             else {
                 Log.d(LOG_TAG, "mManager is empty");
+            }*/
+
+            // get network information
+            /*NetworkInfo networkInfo = (NetworkInfo) intent
+                    .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+
+            Log.d(LOG_TAG, "isConnected: " + networkInfo.isConnected());
+
+            if(networkInfo.isConnected()){
+                this.wifiManager.requestConnectionInfo(wifiChannel, new WifiP2pManager.ConnectionInfoListener() {
+
+                    @Override
+                    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                        masterAddress = info.groupOwnerAddress;
+
+                        Log.d(LOG_TAG, "Group owner address: " + masterAddress);
+                        Log.d(LOG_TAG, "Group formed: " + info.groupFormed);
+                        Log.d(LOG_TAG, "Group owner: " + info.isGroupOwner);
+
+                        // is our user the chat-room owner?
+                        if(info.groupFormed && info.isGroupOwner) {
+                            // is owner, mark the user as owner create a server instance
+                            isMaster = true;
+                        }
+                        // not the chat-room owner, has to be a client instead
+                        else if(info.groupFormed) {
+                            isMaster = false;
+
+                            // start authentication, after we have received the address
+                            // of the authentication-socket
+                            mainActivity.startAuthentication();
+                        }
+
+                        Log.d(LOG_TAG, "IsServer: " + isMaster);
+                    }
+                });
             }*/
         }
 
@@ -140,15 +219,13 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                         }
                     });
                 }
-
             }
-
-
         }
 
         // Respond to this device's wifi state changing
         else if(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-            //Log.d(LOG_TAG, "WIFI_P2P_THIS_DEVICE_CHANGED_ACTION");
+            Log.d(LOG_TAG, "WIFI_P2P_THIS_DEVICE_CHANGED_ACTION");
+
         }
     }
 

@@ -193,9 +193,9 @@ public class CreateActivity extends ActionBarActivity {
             String userName = settings.getString(SettingsActivity.PREF_USER_NAME, "Anonymous");
 
             // everything valid, create a new RoomModel
-            //@todo real "OWNER_ADDRESS"
-            roomData = new RoomModel(userName, "OWNER_ADDRESS", roomNameValue, roomCategoryValue,
-                    "ROOM_IMAGE", roomEncrypted);
+            //@todo real "ROOM_IMAGE"
+            roomData = new RoomModel(userName, roomNameValue, roomCategoryValue, "ROOM_IMAGE",
+                    roomEncrypted);
             if(roomEncrypted) {
                 roomData.setPassword(roomPasswordValue);
             }

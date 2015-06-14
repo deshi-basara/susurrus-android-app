@@ -3,6 +3,7 @@ package rocks.susurrus.susurrus.models;
 import android.util.Log;
 
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,16 +39,14 @@ public class RoomModel implements Serializable {
      * Constructor.
      * Sets model attributes.
      * @param ownerName
-     * @param ownerAddr
      * @param roomName
      * @param roomCategory
      * @param roomImage
      * @param roomEncrypted
      */
-    public RoomModel(String ownerName, String ownerAddr, String roomName, String roomCategory,
+    public RoomModel(String ownerName, String roomName, String roomCategory,
                      String roomImage, boolean roomEncrypted) {
         this.ownerName = ownerName;
-        this.ownerAddr = ownerAddr;
         this.roomName = roomName;
         this.roomCategory = roomCategory;
         this.roomImage = roomImage;
@@ -65,9 +64,15 @@ public class RoomModel implements Serializable {
     public void setRoomMembers(int count) {
         this.roomMembers = count;
     }
+    public void setOwnerAddr(String addr) {
+        this.ownerAddr = addr;
+    }
 
     public String getOwnerName() {
         return this.ownerName;
+    }
+    public String getRoomPassword() {
+        return this.roomPassword;
     }
     public String getOwnerAddr() { return this.ownerAddr; }
     public String getRoomName() {
@@ -96,13 +101,5 @@ public class RoomModel implements Serializable {
         roomMap.put("available", "visible");
 
         return roomMap;
-    }
-
-    /**
-     * Returns if the room is encrypted.
-     * @return True, encrypted
-     */
-    public boolean isRoomEncrypted() {
-        return this.roomEncrypted;
     }
 }

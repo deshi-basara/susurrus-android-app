@@ -30,6 +30,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.skyfishjy.library.RippleBackground;
 
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
+import rocks.susurrus.susurrus.models.AuthModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.network.WifiDisconnector;
@@ -55,6 +56,7 @@ public class MainActivity extends ActionBarActivity {
     /**
      * Services/Threads/Handler
      */
+    private Intent intentService;
     private WifiDirectService wifiDirectService;
     private boolean isWifiDirectServiceBound;
     private Handler authHandler;
@@ -95,7 +97,7 @@ public class MainActivity extends ActionBarActivity {
             startActivity(intentChat);
         }
 
-        if(isAlreadyConnected()) {
+        /*if(isAlreadyConnected()) {
             WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             Log.d(LOG_TAG, "Forcing disconnect");
 
@@ -104,13 +106,13 @@ public class MainActivity extends ActionBarActivity {
             WifiDisconnector disconnector = new WifiDisconnector(wifiManager);
             registerReceiver(disconnector, new IntentFilter(WifiManager.
                     SUPPLICANT_STATE_CHANGED_ACTION));
-        }
+        }*/
 
         setupView();
         setupHandler();
 
         // start and bind the wifiDirectService
-        Intent intentService = new Intent(this, WifiDirectService.class);
+        intentService = new Intent(this, WifiDirectService.class);
         startService(intentService);
         bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
     }
@@ -157,10 +159,20 @@ public class MainActivity extends ActionBarActivity {
      * Is executed, when the Activity is destroyed
      */
     protected void onDestroy() {
+        super.onDestroy();
+
         // destroy running AsyncTasks (needed for lower Android-versions)
         if(this.authTask != null) {
             Log.d(LOG_TAG, "Destroying: authTask [AsyncTask]");
             this.authTask.cancel(true);
+        }
+        if(this.isWifiDirectServiceBound) {
+            Log.d(LOG_TAG, "Unbinding: wifiDirectService [Service]");
+            //unbindService(serviceConnection);
+        }
+        if(this.intentService != null) {
+            Log.d(LOG_TAG, "Destroying: wifiDirectService [Service]");
+            //stopService(this.intentService);
         }
     }
 
@@ -283,6 +295,7 @@ public class MainActivity extends ActionBarActivity {
 
             // get room deviceAddress and try to establish a connection
             clickedRoom = roomAdapter.getItem(position);
+            wifiDirectService.setupWifiDirectReceiver();
             wifiDirectService.connectToLocalService(clickedRoom, MainActivity.this);
 
             Log.d(LOG_TAG, "Connection to room established: " + clickedRoom.getRoomName());
@@ -300,6 +313,10 @@ public class MainActivity extends ActionBarActivity {
 
     public void showRoomJoinFeedbackUpdate(final int authenticationState) {
 
+        if(roomJoinDialog == null) {
+            return;
+        }
+
         // delay ui-update to make messages readable
         Handler delayUi = new Handler();
         delayUi.postDelayed(new Runnable() {
@@ -311,6 +328,8 @@ public class MainActivity extends ActionBarActivity {
                     case WifiDirectService.GROUP_CONNECTED:
                         roomJoinDialog.setContent(R.string.main_dialog_group_connected);
                         roomJoinDialog.incrementProgress(25);
+
+                        startAuthentication();
 
                         break;
                     case WifiDirectService.GROUP_NOT_CONNECTED:
@@ -368,12 +387,21 @@ public class MainActivity extends ActionBarActivity {
     public Boolean startAuthentication() {
         Log.d(LOG_TAG, "startAuthentication");
 
+        // create a new authentication model
+        AuthModel authRequest = new AuthModel("password", "public");
+        //@todo insert real values
+
         // get an instance of the wifiDirectReceiver
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
 
-        this.authTask = new ClientAuthenticationTask(this.authHandler, MainActivity.this,
-                wifiDirectReceiver.getMasterAddress())
-                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        Log.d(LOG_TAG, "masterAddress: " + wifiDirectReceiver.getMasterAddress());
+
+        this.authTask = new ClientAuthenticationTask(
+                this.authHandler,
+                MainActivity.this,
+                wifiDirectReceiver.getMasterAddress(),
+                authRequest
+        ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return true;
     }
