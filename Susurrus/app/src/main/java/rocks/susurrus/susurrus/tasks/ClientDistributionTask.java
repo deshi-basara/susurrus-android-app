@@ -2,9 +2,13 @@ package rocks.susurrus.susurrus.tasks;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -36,7 +40,7 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
      */
     private ChatActivity chatActivity;
     private InetAddress serverAddress;
-    private ImageView statusIndicator;
+    private ListView messageList;
 
     /**
      * Task constructor.
@@ -44,10 +48,10 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
      * @param serverAddress Destination address (socket-server) of the message.
      */
     public ClientDistributionTask(ChatActivity chatActivity, InetAddress serverAddress,
-                                  ImageView statusIndicator) {
+                                  ListView messageList) {
         this.chatActivity = chatActivity;
         this.serverAddress = serverAddress;
-        this.statusIndicator = statusIndicator;
+        this.messageList = messageList;
     }
 
     @Override
@@ -108,20 +112,28 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
         // we only pass one argument at max, always use the first element [0] from the 'varargs'
         super.onProgressUpdate(messageStatus[0]);
 
-        if(this.statusIndicator == null) {
-            return;
-        }
+        // get last element in our ListView
+        /*int lastIndex = this.messageList.getCount() - 1;
+        LinearLayout listItem = (LinearLayout) this.messageList.getChildAt(lastIndex);
 
-        // update the view element according to the messageStatus
-        switch(messageStatus[0]) {
-            case MESSAGE_SENT:
-                // change drawable to the sent-indicator
-                this.statusIndicator.setImageResource(R.drawable.checkmark_24);
-                break;
-            case MESSAGE_ERROR:
-                // change drawable to the error-indicator
-                this.statusIndicator.setImageResource(R.drawable.cancel_24);
-        }
+        if(listItem != null) {
+            RelativeLayout listRelative = (RelativeLayout) listItem.getChildAt(0);
+            ImageView statusIndicator = (ImageView) listRelative.getChildAt(1);
+
+            // update the view element according to the messageStatus
+            switch(messageStatus[0]) {
+                case MESSAGE_SENT:
+                    // change drawable to the sent-indicator
+                    statusIndicator.setImageResource(R.drawable.checkmark_24);
+
+                    break;
+                case MESSAGE_ERROR:
+                    // change drawable to the error-indicator
+                    statusIndicator.setImageResource(R.drawable.cancel_24);
+
+                    break;
+            }
+        }*/
 
         Log.d(LOG_TAG, "Message progress: " + messageStatus[0]);
     }

@@ -260,8 +260,6 @@ public class ChatActivity extends ActionBarActivity {
      * @param newMessage MessageModel that should be added.
      */
     private void addMessage(MessageModel newMessage) {
-        Log.d(LOG_TAG, "addMessage: " + newMessage.isOwner());
-
         // add message to the adapter
         messageAdapter.add(newMessage);
     }
@@ -292,11 +290,12 @@ public class ChatActivity extends ActionBarActivity {
             // not server owner, create a client-task for receiving messages
             Log.d(LOG_TAG, "... with a client-distributing-task ...");
 
-            // get row of the message for status updates
-            ImageView test = this.messageAdapter.getItemRow();
+            if(this.messageListView == null) {
+                Log.e(LOG_TAG, "DAVOR SCHON LEER");
+            }
 
             new ClientDistributionTask(ChatActivity.this, wifiDirectReceiver.getMasterAddress(),
-                    this.messageAdapter.getItemRow())
+                    this.messageListView)
                         .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
         }
     }

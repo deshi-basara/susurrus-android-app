@@ -67,16 +67,6 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
         return this.messageList.get(index);
     }
 
-    public ImageView getItemRow() {
-        Log.d(LOG_TAG, "rowsList: " + this.rowsList.size());
-
-        if(this.rowsList.size() == 0) {
-            return null;
-        }
-
-        return this.rowsList.get(this.rowsList.size() - 1);
-    }
-
     @Override
     /**
      * Describes the translation between the data item and the View to display.
@@ -87,6 +77,9 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
 
         // which message should be inserted
         MessageModel chatMessage = getItem(position);
+
+        Log.d(LOG_TAG, "MessageContent: " + chatMessage.getMessage());
+
 
         // get all available layouts
         LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(
@@ -113,9 +106,7 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
         chatText.setText(chatMessage.getMessage());
 
         // return the completed view to render on screen
-        //ImageView statusIndicator = (ImageView) row.findViewById(R.id.single_message_status);
-        //rowsList.add(statusIndicator);
-        //Log.d(LOG_TAG, "statusIndicator added");
+        Log.d(LOG_TAG, "ListView item added");
         return row;
     }
 
