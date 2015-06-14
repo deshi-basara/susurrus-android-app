@@ -2,16 +2,29 @@ package rocks.susurrus.susurrus;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.securepreferences.SecurePreferences;
 
 import org.w3c.dom.Text;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.ArrayList;
+
 import de.hdodenhof.circleimageview.CircleImageView;
+import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.utils.Crypto;
 
 /**
  * Activity for viewing and manipulation persistent setting values
@@ -26,6 +39,8 @@ public class SettingsActivity extends ActionBarActivity {
     static final String PREF_ID = "SUS_PREFS";
     static final String PREF_USER_NAME = "SUS_USER_NAME";
     static final String PREF_IMAGE = "SUS_USER_IMAGE";
+    static final String PREF_PUB_KEY = "SUS_PUB_KEY";
+    static final String PREF_PRIVATE_KEY = "SUS_PUB_PRIVATE";
 
     /**
      * Views
@@ -33,6 +48,9 @@ public class SettingsActivity extends ActionBarActivity {
     private CircleImageView userImageView;
     private EditText userNameInput;
     private TextView userNameInputError;
+    private RelativeLayout generatePubContainer;
+    private RelativeLayout changePwContainer;
+
 
     /**
      * Data
@@ -88,6 +106,13 @@ public class SettingsActivity extends ActionBarActivity {
         this.userImageView = (CircleImageView) findViewById(R.id.settings_user_image);
         this.userNameInput = (EditText) findViewById(R.id.settings_user_name);
         this.userNameInputError = (TextView) findViewById(R.id.settings_user_name_error);
+        this.generatePubContainer = (RelativeLayout) findViewById(R.id.settings_generate_container);
+        this.changePwContainer = (RelativeLayout) findViewById(
+                R.id.settings_change_password_container);
+
+        // set listeners
+        this.generatePubContainer.setOnClickListener(this.onGenerateListener);
+        this.changePwContainer.setOnClickListener(this.onChangeListener);
     }
 
     /**
@@ -96,7 +121,8 @@ public class SettingsActivity extends ActionBarActivity {
      */
     private void setPreferences() {
         // get SharedPreferences
-        this.settings = getSharedPreferences(PREF_ID, 0);
+        //this.settings = getSharedPreferences(PREF_ID, 0);
+        this.settings = new SecurePreferences(getApplicationContext(), "userpassword", null);
 
         // parse settings
         this.userName = settings.getString(PREF_USER_NAME, "Benutzername");
@@ -127,4 +153,78 @@ public class SettingsActivity extends ActionBarActivity {
 
         startActivity(mainIntent);
     }
+
+    /**
+     * OnClick: R.id.settings_generate_container.
+     * Generates a new Private-/Public-Key.
+     */
+    private View.OnClickListener onGenerateListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // show generation-feedback
+            final MaterialDialog generateDialog = new MaterialDialog.Builder(SettingsActivity.this)
+                    .title(R.string.settings_generate_key_title)
+                    .content(R.string.settings_generate_key_content)
+                    .progress(true, 0)
+                    .show();
+
+            Log.d(LOG_TAG, "currentPub: " + settings.getString(PREF_PUB_KEY, "NoPubKey"));
+
+            // start generation
+            ArrayList generatedKeys = Crypto.generateKeys();
+            PrivateKey privateKey = (PrivateKey) generatedKeys.get(0);
+            PublicKey publicKey = (PublicKey) generatedKeys.get(1);
+
+            // valid keys generated?
+            if(privateKey != null && publicKey != null) {
+                // save keys as string
+                String privateString = Crypto.keyToString(privateKey);
+                String publicString = Crypto.keyToString(publicKey);
+
+                // save as preferences
+                SharedPreferences.Editor settingsEditor = settings.edit();
+                settingsEditor.putString(PREF_PRIVATE_KEY, privateString);
+                settingsEditor.putString(PREF_PUB_KEY, publicString);
+
+                settingsEditor.commit();
+
+                /*Log.d(LOG_TAG, "before: " + privateString);
+                PrivateKey test = Crypto.privateStringToKey(privateString);
+                Log.d(LOG_TAG, "after: " + Crypto.keyToString(test));*/
+            }
+            else {
+                Log.e(LOG_TAG, "No valid keys generated");
+            }
+
+            generateDialog.setContent(R.string.settings_generate_key_done);
+
+            // s low down ui-feedback
+            Handler uiHandler = new Handler();
+            uiHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    generateDialog.hide();
+                }
+            }, 2000);
+        }
+    };
+
+    /**
+     * OnClick: R.id.settings_change_password_container.
+     * Generates a new application-password.
+     */
+    private View.OnClickListener onChangeListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            // start generation
+
+            new MaterialDialog.Builder(SettingsActivity.this)
+                    .iconRes(R.drawable.key_512)
+                    .limitIconToDefaultSize()
+                    .title(R.string.settings_generate_key_title)
+                    .content(R.string.settings_generate_key_content)
+                    .positiveText("Coool")
+                    .show();
+        }
+    };
 }

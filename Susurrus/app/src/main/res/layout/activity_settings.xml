@@ -49,15 +49,80 @@
                 android:id="@+id/settings_user_name_error"
                 android:layout_width="300dp"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/create_room_category_container"
-                android:layout_alignLeft="@+id/create_room_name_container"
-                android:layout_alignStart="@+id/create_room_name_container"
-                android:layout_marginLeft="5dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="@string/create_room_name_error"
                 android:textColor="@color/error"
                 android:visibility="invisible"
+                android:layout_below="@+id/setting_user_name_container"
+                android:layout_alignLeft="@+id/setting_user_name_container"
+                android:layout_alignStart="@+id/setting_user_name_container"
+                android:layout_marginTop="-15dp"
                 />
+
+            <RelativeLayout
+                android:id="@+id/settings_generate_container"
+                android:layout_width="300dp"
+                android:layout_height="100dp"
+                android:background="@android:drawable/dialog_holo_light_frame"
+                android:layout_below="@+id/setting_user_name_container"
+                android:layout_alignLeft="@+id/settings_user_name_error"
+                android:layout_alignStart="@+id/settings_user_name_error"
+                >
+
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/key_512"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginLeft="12dp"
+                    android:id="@+id/imageView2"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/settings_generate_key"
+                    android:id="@+id/textView2"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@+id/imageView2"
+                    android:layout_toRightOf="@+id/imageView2"
+                    android:gravity="center"
+                    />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_change_password_container"
+                android:layout_width="300dp"
+                android:layout_height="100dp"
+                android:background="@android:drawable/dialog_holo_light_frame"
+                android:layout_below="@+id/settings_generate_container"
+                android:layout_alignLeft="@+id/settings_user_name_error"
+                android:layout_alignStart="@+id/settings_user_name_error"
+                >
+
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/lock_portrait_512"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginLeft="12dp"
+                    android:id="@+id/imageView3"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/settings_change_password"
+                    android:id="@+id/textView3"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@+id/imageView3"
+                    android:layout_toRightOf="@+id/imageView3"
+                    android:gravity="center"
+                    />
+            </RelativeLayout>
+
 
         </RelativeLayout>
 
