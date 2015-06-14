@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
@@ -33,6 +34,7 @@ import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.services.MasterService;
 import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
 import rocks.susurrus.susurrus.tasks.ServerDistributionTask;
+import rocks.susurrus.susurrus.utils.Settings;
 
 
 public class ChatActivity extends ActionBarActivity {
@@ -51,6 +53,7 @@ public class ChatActivity extends ActionBarActivity {
     private MessageAdapter messageAdapter;
     private RoomModel currentRoom;
     private boolean isMasterNode;
+    private String userName;
 
     /**
      * Views
@@ -93,6 +96,10 @@ public class ChatActivity extends ActionBarActivity {
         // get if the current client is the network's MasterNode
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
         this.isMasterNode = wifiDirectReceiver.isMaster();
+
+        // get username
+        SharedPreferences settings = getSharedPreferences(Settings.PREF_ID, 0);
+        userName = settings.getString(Settings.PREF_USER_NAME, "Anonymous");
     }
 
     private void setupMaster() {
@@ -244,7 +251,7 @@ public class ChatActivity extends ActionBarActivity {
         String messageText = messageInputText.getText().toString();
         messageInputText.setText("");
 
-        MessageModel newMessage = new MessageModel(true, "Cooler Benutzer", messageText);
+        MessageModel newMessage = new MessageModel(true, this.userName, messageText);
         return newMessage;
     }
 

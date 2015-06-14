@@ -24,6 +24,7 @@ import com.wrapp.floatlabelededittext.FloatLabeledEditText;
 
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.utils.Settings;
 
 
 public class CreateActivity extends ActionBarActivity {
@@ -189,8 +190,8 @@ public class CreateActivity extends ActionBarActivity {
         }
         else {
             // get the creator's username
-            SharedPreferences settings = getSharedPreferences(SettingsActivity.PREF_ID, 0);
-            String userName = settings.getString(SettingsActivity.PREF_USER_NAME, "Anonymous");
+            SharedPreferences settings = getSharedPreferences(Settings.PREF_ID, 0);
+            String userName = settings.getString(Settings.PREF_USER_NAME, "Anonymous");
 
             // everything valid, create a new RoomModel
             //@todo real "ROOM_IMAGE"
