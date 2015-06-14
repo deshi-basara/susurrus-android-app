@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import de.hdodenhof.circleimageview.CircleImageView;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.utils.Crypto;
+import rocks.susurrus.susurrus.utils.Settings;
 
 /**
  * Activity for viewing and manipulation persistent setting values
@@ -32,15 +33,6 @@ import rocks.susurrus.susurrus.utils.Crypto;
  */
 public class SettingsActivity extends ActionBarActivity {
     static final String LOG_TAG = "SettingsActivity";
-
-    /**
-     * Constants
-     */
-    static final String PREF_ID = "SUS_PREFS";
-    static final String PREF_USER_NAME = "SUS_USER_NAME";
-    static final String PREF_IMAGE = "SUS_USER_IMAGE";
-    static final String PREF_PUB_KEY = "SUS_PUB_KEY";
-    static final String PREF_PRIVATE_KEY = "SUS_PUB_PRIVATE";
 
     /**
      * Views
@@ -125,7 +117,7 @@ public class SettingsActivity extends ActionBarActivity {
         this.settings = new SecurePreferences(getApplicationContext(), "userpassword", null);
 
         // parse settings
-        this.userName = settings.getString(PREF_USER_NAME, "Benutzername");
+        this.userName = settings.getString(Settings.PREF_USER_NAME, "Benutzername");
 
         // insert settings
         this.userNameInput.setText(this.userName);
@@ -140,7 +132,7 @@ public class SettingsActivity extends ActionBarActivity {
     private void updatePreferences() {
         SharedPreferences.Editor settingsEditor = this.settings.edit();
 
-        settingsEditor.putString(PREF_USER_NAME, userNameInput.getText().toString());
+        settingsEditor.putString(Settings.PREF_USER_NAME, userNameInput.getText().toString());
 
         settingsEditor.commit();
     }
@@ -168,7 +160,7 @@ public class SettingsActivity extends ActionBarActivity {
                     .progress(true, 0)
                     .show();
 
-            Log.d(LOG_TAG, "currentPub: " + settings.getString(PREF_PUB_KEY, "NoPubKey"));
+            Log.d(LOG_TAG, "currentPub: " + settings.getString(Settings.PREF_PUB_KEY, "NoPubKey"));
 
             // start generation
             ArrayList generatedKeys = Crypto.generateKeys();
@@ -183,8 +175,8 @@ public class SettingsActivity extends ActionBarActivity {
 
                 // save as preferences
                 SharedPreferences.Editor settingsEditor = settings.edit();
-                settingsEditor.putString(PREF_PRIVATE_KEY, privateString);
-                settingsEditor.putString(PREF_PUB_KEY, publicString);
+                settingsEditor.putString(Settings.PREF_PRIVATE_KEY, privateString);
+                settingsEditor.putString(Settings.PREF_PUB_KEY, publicString);
 
                 settingsEditor.commit();
 
