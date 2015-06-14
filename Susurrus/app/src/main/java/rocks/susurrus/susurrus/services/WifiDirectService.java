@@ -60,6 +60,7 @@ public class WifiDirectService extends Service {
     private WifiP2pManager wifiDirectManager;
     private WifiP2pManager.Channel wifiDirectChannel;
     private WifiDirectBroadcastReceiver wifiDirectReceiver;
+    private boolean isWifiDirectReceiverRegistered = false;
 
     /**
      * Ui
@@ -83,7 +84,6 @@ public class WifiDirectService extends Service {
     }
     public void setMainActivity(MainActivity a) {
         this.mainActivity = a;
-        this.wifiDirectReceiver.setMainActivity(a);
     }
     public void setRoomAdapter(RoomAdapter r) {
         this.roomAdapter = r;
@@ -104,9 +104,6 @@ public class WifiDirectService extends Service {
     public void onCreate() {
         // setup all needed networking interfaces
         this.initiateNetworking();
-
-        // start listening for WifiP2P-broadcasts
-        registerReceiver(this.wifiDirectReceiver, this.wifiDirectIntentFilter);
     }
 
     @Override
@@ -116,10 +113,11 @@ public class WifiDirectService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
-        Log.d(LOG_TAG, "ONDESTROY!!!!!!!!!!!!!!");
-
-        // unregister WifiP2P-broadcast listener
-        unregisterReceiver(this.wifiDirectReceiver);
+        if(this.isWifiDirectReceiverRegistered) {
+            Log.d(LOG_TAG, "Unregistering: wifiDirectReceiver [Broadcast-Receiver]");
+            // unregister WifiP2P-broadcast listener
+            unregisterReceiver(this.wifiDirectReceiver);
+        }
     }
 
     @Override
@@ -148,11 +146,6 @@ public class WifiDirectService extends Service {
         // register application with the WifiP2PManager
         this.wifiDirectChannel = this.wifiDirectManager.initialize(this, getMainLooper(), null);
 
-        // get an instance of the broadcast receiver and set needed data
-        this.wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
-        this.wifiDirectReceiver.setWifiDirectManager(this.wifiDirectManager);
-        this.wifiDirectReceiver.setWifiDirectChannel(this.wifiDirectChannel);
-
         // setup the wifi direct service
         this.setupLocalServiceDiscovery();
 
@@ -160,6 +153,23 @@ public class WifiDirectService extends Service {
         //this.wifiDirectService.discoverLocalServices();
 
         Log.d(this.LOG_TAG, "Networking initiated.");
+    }
+
+    public void setupWifiDirectReceiver() {
+
+        if(!this.isWifiDirectReceiverRegistered) {
+            // get an instance of the broadcast receiver and set needed data
+            this.wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
+            this.wifiDirectReceiver.setWifiDirectManager(this.wifiDirectManager);
+            this.wifiDirectReceiver.setWifiDirectChannel(this.wifiDirectChannel);
+            this.wifiDirectReceiver.setMainActivity(this.mainActivity);
+
+            // start listening for WifiP2P-broadcasts
+            registerReceiver(this.wifiDirectReceiver, this.wifiDirectIntentFilter);
+
+            this.isWifiDirectReceiverRegistered = true;
+        }
+
     }
 
     /**
@@ -191,7 +201,7 @@ public class WifiDirectService extends Service {
                     }
                 }
         );
-    }
+            }
 
     /**
      * Setups an own local "susurrus"-service (which represents a chat room).
@@ -200,6 +210,8 @@ public class WifiDirectService extends Service {
         Log.d(LOG_TAG, "Registering new room ...");
 
         feedbackActivity.registerWifiDialogUpdate(GROUP_CREATING);
+
+        wifiDirectManager.createGroup(this.wifiDirectChannel, createGroupListener);
 
         // get the creator's username and add it
 
@@ -219,6 +231,8 @@ public class WifiDirectService extends Service {
 
                 // send feedback
                 feedbackActivity.registerWifiDialogUpdate(GROUP_CREATED);
+
+                discoverLocalServices();
             }
 
             @Override
@@ -255,7 +269,7 @@ public class WifiDirectService extends Service {
 
             @Override
             public void onSuccess() {
-                feedbackActivity.showRoomJoinFeedbackUpdate(GROUP_CONNECTED);
+                //feedbackActivity.showRoomJoinFeedbackUpdate(GROUP_CONNECTED);
             }
 
             @Override
@@ -352,7 +366,6 @@ public class WifiDirectService extends Service {
 
                 // fetch needed data
                 String roomOwner = (String) roomData.get("user_name");
-                String ownerAddr = resourceType.deviceAddress;
                 String roomName = (String) roomData.get("room_name");
                 String roomCategory = (String) roomData.get("room_category");
                 String roomImage = (String) roomData.get("room_image");
@@ -363,14 +376,29 @@ public class WifiDirectService extends Service {
                 }
 
                 // create a new RoomModel for the discovered service.
-                RoomModel newRoom = new RoomModel(roomOwner, ownerAddr, roomName, roomCategory,
+                RoomModel newRoom = new RoomModel(roomOwner, roomName, roomCategory,
                         roomImage, roomEncrypted);
+
+                // set owner address, for connection
+                newRoom.setOwnerAddr(resourceType.deviceAddress);
 
                 // add to the adapter
                 roomAdapter.add(newRoom);
             }
 
             Log.d(LOG_TAG, "onBonjourServiceAvailable " + instanceName);
+        }
+    };
+
+    private WifiP2pManager.ActionListener createGroupListener = new WifiP2pManager.ActionListener() {
+        @Override
+        public void onSuccess() {
+            Log.d(LOG_TAG, "group created!");
+        }
+
+        @Override
+        public void onFailure(int reason) {
+            Log.d(LOG_TAG, "group error: " + reason);
         }
     };
 }

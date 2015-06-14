@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
@@ -31,6 +32,7 @@ import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.services.MasterService;
 import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
+import rocks.susurrus.susurrus.tasks.ServerDistributionTask;
 
 
 public class ChatActivity extends ActionBarActivity {
@@ -40,15 +42,15 @@ public class ChatActivity extends ActionBarActivity {
      * Threads/Handler/Services
      */
     MasterService masterService;
-    Handler chatHandler;
-    Handler authHandler;
-    boolean isMasterServiceBound = false;
+    Intent chatService;
+    boolean isChatServiceBound = false;
 
     /**
      * Data
      */
     private MessageAdapter messageAdapter;
     private RoomModel currentRoom;
+    private boolean isMasterNode;
 
     /**
      * Views
@@ -72,41 +74,43 @@ public class ChatActivity extends ActionBarActivity {
         //startService(new Intent(this, ChatService.class));
 
         setupData();
-        setupHandlers();
-        setupServices();
+
+        // is our user the MasterNode of the whole network?
+        if(this.isMasterNode) {
+            // start auth- and receive-thread
+            setupMaster();
+        }
+        else {
+            // start only the receive-thread
+            setupSlave();
+        }
     }
 
     private void setupData() {
         // get needed data from intent
         this.currentRoom = (RoomModel) getIntent().getSerializableExtra("ROOM_MODEL");
+
+        // get if the current client is the network's MasterNode
+        WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
+        this.isMasterNode = wifiDirectReceiver.isMaster();
     }
 
-    private void setupServices() {
-        Intent intentService = new Intent(this, MasterService.class);
-        intentService.putExtra("ROOM_MODEL", this.currentRoom);
-        startService(intentService);
-        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
+    private void setupMaster() {
+        Log.d(LOG_TAG, "Setup Master");
+
+        this.chatService = new Intent(this, MasterService.class);
+        this.chatService.putExtra("ROOM_MODEL", this.currentRoom);
+        startService(this.chatService);
+        bindService(this.chatService, masterConnection, Context.BIND_AUTO_CREATE);
     }
 
-    private void setupHandlers() {
-        // attach handler objects to the ui-thread
-        this.chatHandler = new Handler(Looper.getMainLooper()) {
-            @Override
-            /**
-             * Is executed whenever the handler receives a new message from our chatService-
-             * thread.
-             */
-            public void handleMessage(Message inputMessage) {
-                MessageModel receivedMessage = (MessageModel) inputMessage.obj;
+    private void setupSlave() {
+        Log.d(LOG_TAG, "Setup Slave");
 
-                // what kind of message did we receive?
-                //@todo implement switch case
-
-                Log.d(LOG_TAG, "handleMessage: " + receivedMessage.getMessage());
-
-                addMessage(receivedMessage);
-            }
-        };
+        this.chatService = new Intent(this, MasterService.class);
+        this.chatService.putExtra("ROOM_MODEL", this.currentRoom);
+        startService(this.chatService);
+        bindService(this.chatService, slaveConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -147,6 +151,27 @@ public class ChatActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    /**
+     * Is executed, when the Activity is destroyed
+     */
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // destroy running AsyncTasks (needed for lower Android-versions)
+        if(this.chatService != null && this.isChatServiceBound) {
+            Log.d(LOG_TAG, "Destroying: chatService [Service]");
+            if(isMasterNode) {
+                unbindService(masterConnection);
+            }
+            else {
+                unbindService(slaveConnection);
+            }
+
+            stopService(this.chatService);
+        }
     }
 
     /**
@@ -228,6 +253,8 @@ public class ChatActivity extends ActionBarActivity {
      * @param newMessage MessageModel that should be added.
      */
     private void addMessage(MessageModel newMessage) {
+        Log.d(LOG_TAG, "addMessage: " + newMessage.isOwner());
+
         // add message to the adapter
         messageAdapter.add(newMessage);
     }
@@ -246,17 +273,24 @@ public class ChatActivity extends ActionBarActivity {
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
 
         // is the current user the server owner or just a client?
-        if(wifiDirectReceiver.isMaster()) {
+        if(this.isMasterNode) {
             // server owner, create a server-task for distributing the message directly to all
             // connected clients.
             Log.d(LOG_TAG, "... with a server-distributing-task ...");
+
+            new ServerDistributionTask(ChatActivity.this)
+                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
         }
         else {
             // not server owner, create a client-task for receiving messages
             Log.d(LOG_TAG, "... with a client-distributing-task ...");
 
-            new ClientDistributionTask(ChatActivity.this, wifiDirectReceiver.getMasterAddress())
-                    .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+            // get row of the message for status updates
+            ImageView test = this.messageAdapter.getItemRow();
+
+            new ClientDistributionTask(ChatActivity.this, wifiDirectReceiver.getMasterAddress(),
+                    this.messageAdapter.getItemRow())
+                        .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
         }
     }
 
@@ -293,9 +327,9 @@ public class ChatActivity extends ActionBarActivity {
     };
 
     /**
-     * Connection to the external wifiDirectService-process.
+     * Connection to the external wifiDirectService-process for MasterNode.
      */
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private ServiceConnection masterConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MasterService.InstanceBinder localBinder = (MasterService.InstanceBinder) service;
@@ -303,12 +337,58 @@ public class ChatActivity extends ActionBarActivity {
             masterService.setChatHandler(chatHandler);
             masterService.startChatThread();
             masterService.startAuthThread();
-            isMasterServiceBound = true;
+            isChatServiceBound = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            isMasterServiceBound = false;
+            isChatServiceBound = false;
+        }
+    };
+
+    /**
+     * Connection to the external wifiDirectService-process for SlaveNodes.
+     */
+    private ServiceConnection slaveConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MasterService.InstanceBinder localBinder = (MasterService.InstanceBinder) service;
+            masterService = localBinder.getService();
+            masterService.setChatHandler(chatHandler);
+            masterService.startChatThread();
+
+            isChatServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) { isChatServiceBound = false;
+        }
+    };
+
+    /**
+     * Attach handler object to the ui-thread for communication between the Receiver-thread
+     * and the ChatActivity.
+     */
+    private Handler chatHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        /**
+         * Is executed whenever the handler receives a new message from our chatService-
+         * thread.
+         */
+        public void handleMessage(Message inputMessage) {
+            MessageModel receivedMessage = (MessageModel) inputMessage.obj;
+
+            // what kind of message did we receive?
+            //@todo implement switch case
+
+            addMessage(receivedMessage);
+
+            // new message received, is the current user the master then he needs to distribute
+            // the message inside the whole network
+            if(isMasterNode) {
+                Log.d(LOG_TAG, "Redistributing message");
+                distributeMessage(receivedMessage);
+            }
         }
     };
 }

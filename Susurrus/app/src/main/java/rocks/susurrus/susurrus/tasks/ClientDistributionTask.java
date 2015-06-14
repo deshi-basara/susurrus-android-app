@@ -2,7 +2,9 @@ package rocks.susurrus.susurrus.tasks;
 
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -34,15 +36,18 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
      */
     private ChatActivity chatActivity;
     private InetAddress serverAddress;
+    private ImageView statusIndicator;
 
     /**
      * Task constructor.
      * @param chatActivity Needed for progress feedback calls.
      * @param serverAddress Destination address (socket-server) of the message.
      */
-    public ClientDistributionTask(ChatActivity chatActivity, InetAddress serverAddress) {
+    public ClientDistributionTask(ChatActivity chatActivity, InetAddress serverAddress,
+                                  ImageView statusIndicator) {
         this.chatActivity = chatActivity;
         this.serverAddress = serverAddress;
+        this.statusIndicator = statusIndicator;
     }
 
     @Override
@@ -56,9 +61,10 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
         publishProgress(this.MESSAGE_SENDING);
 
+        Socket client = null;
         try {
             // create a new socket client
-            Socket client = new Socket();
+            client = new Socket();
 
             client.setReuseAddress(true);
             client.bind(null);
@@ -77,21 +83,17 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
             Log.d(LOG_TAG, "Client successfully sent his message to " + this.serverAddress);
             publishProgress(this.MESSAGE_SENT);
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
-
-            publishProgress(this.MESSAGE_ERROR);
-        } /*finally{
-            if (client != null) {
-                if (socket.isConnected()) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+        } finally {
+            if(client != null && client.isConnected()) {
+                try {
+                    client.close();
+                } catch(IOException e) {
+                    e.printStackTrace();
                 }
             }
-        }*/
+        }
 
         return false;
     }
@@ -106,28 +108,22 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
         // we only pass one argument at max, always use the first element [0] from the 'varargs'
         super.onProgressUpdate(messageStatus[0]);
 
-        // get indicator view
-        ImageView statusIndicator = (ImageView) chatActivity.findViewById(
-                R.id.single_message_status);
+        if(this.statusIndicator == null) {
+            return;
+        }
 
         // update the view element according to the messageStatus
         switch(messageStatus[0]) {
             case MESSAGE_SENT:
                 // change drawable to the sent-indicator
-                statusIndicator.setImageResource(R.drawable.checkmark_24);
+                this.statusIndicator.setImageResource(R.drawable.checkmark_24);
                 break;
             case MESSAGE_ERROR:
                 // change drawable to the error-indicator
-                statusIndicator.setImageResource(R.drawable.cancel_24);
+                this.statusIndicator.setImageResource(R.drawable.cancel_24);
         }
 
         Log.d(LOG_TAG, "Message progress: " + messageStatus[0]);
-    }
-
-    @Override
-    protected void onPostExecute(Boolean hasErrors) {
-        Log.d(LOG_TAG, "onPostExecute");
-        super.onPostExecute(hasErrors);
     }
 
     /*@SuppressWarnings("rawtypes")

@@ -1,13 +1,9 @@
 package rocks.susurrus.susurrus.tasks;
 
 import android.os.AsyncTask;
-import android.os.Message;
 import android.util.Log;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -19,11 +15,12 @@ import java.util.ArrayList;
 import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
 
 /**
  * Created by simon on 06.06.15.
  */
-public class ServerDistributionTask extends AsyncTask<Void, MessageModel, Void> {
+public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boolean> {
     public static final String LOG_TAG = "ServerDistributionTask";
 
     /**
@@ -55,42 +52,48 @@ public class ServerDistributionTask extends AsyncTask<Void, MessageModel, Void> 
     /**
      * Executed when the AsyncTask is started.
      */
-    protected Void doInBackground(Void... params) {
-        Log.d(LOG_TAG, "Starting the messaging-distribution-server ...");
+    protected Boolean doInBackground(MessageModel... messageModels) {
+        Log.d(LOG_TAG, "Starting the messaging-distribution-client ...");
 
-        //Display le message on the sender before sending it
-        //publishProgress(msg);
+        // send message to all authenticated clients
+        try {
+            ArrayList<InetAddress> authenticatedClients = ServerAuthenticationThread.
+                    authenticatedClients;
 
-        //Send the message to clients
-        /*try {
-            ArrayList<InetAddress> listClients = ServerInit.clients;
-            for(InetAddress addr : listClients){
+            InetAddress ownerAddress = messageModels[0].getOwnerAddress();
+            // loop through all authenticated clients
+            for(int i = 0; i < authenticatedClients.size(); i++) {
+                InetAddress currentAddress = authenticatedClients.get(i);
 
-                if(msg[0].getSenderAddress()!=null && addr.getHostAddress().equals(msg[0].getSenderAddress().getHostAddress())){
-                    return msg[0];
+                // check if the currentAddress matches the Address of the message owner, skip
+                // the client
+                if(currentAddress.equals(ownerAddress)) {
+                    // message owner, skip
+                    break;
                 }
 
+                // create a socket-client and send the message to all clients
                 Socket socket = new Socket();
                 socket.setReuseAddress(true);
                 socket.bind(null);
-                Log.v(TAG,"Connect to client: " + addr.getHostAddress());
-                socket.connect(new InetSocketAddress(addr, SERVER_PORT));
-                Log.v(TAG, "doInBackground: connect to "+ addr.getHostAddress() +" succeeded");
+                socket.connect(new InetSocketAddress(currentAddress, WifiDirectService.
+                        SERVICE_PORT));
 
+                Log.d(LOG_TAG, "Connected to client: " + currentAddress);
+
+                // get the output-Stream of the socket and send the message
                 OutputStream outputStream = socket.getOutputStream();
+                new ObjectOutputStream(outputStream).writeObject(messageModels[0]);
 
-                new ObjectOutputStream(outputStream).writeObject(msg[0]);
-
-                Log.v(TAG, "doInBackground: write to "+ addr.getHostAddress() +" succeeded");
+                Log.v(LOG_TAG, "doInBackground: write to "+ currentAddress +" succeeded");
                 socket.close();
             }
-
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
-            Log.e(TAG, "Erreur d'envoie du message");
-        }*/
+            Log.e(LOG_TAG, "Error sending a message");
+        }
 
-        return null;
+        return true;
     }
 
 }

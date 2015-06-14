@@ -81,8 +81,6 @@ public class MasterService extends Service {
             this.authThread.start();
 
             this.isAuthenticated = true;
-
-            Log.d(LOG_TAG, "AuthenticationThread started.");
         }
 
     }
@@ -100,8 +98,6 @@ public class MasterService extends Service {
             this.chatThread.start();
 
             this.hasChat = true;
-
-            Log.d(LOG_TAG, "AuthenticationThread started.");
         }
     }
 
@@ -109,8 +105,6 @@ public class MasterService extends Service {
      * Getter/Setter
      */
     public void setChatHandler(Handler handler) {
-        Log.d(LOG_TAG, "ChatHandler set");
-
         this.chatHandler = handler;
     }
 

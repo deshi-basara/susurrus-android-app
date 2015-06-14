@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -26,6 +27,7 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
     private static final String LOG_TAG = "MessageAdapter";
 
     private List<MessageModel> messageList = new ArrayList<MessageModel>();
+    private List<ImageView> rowsList = new ArrayList<>();
 
     /**
      * Class constructor.
@@ -43,7 +45,7 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
      * @param message
      */
     public void add(MessageModel message) {
-        Log.d(LOG_TAG, "Adding message");
+        Log.d(LOG_TAG, "Adding message: " + message.isOwner());
         messageList.add(message);
         super.add(message);
     }
@@ -65,34 +67,45 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
         return this.messageList.get(index);
     }
 
+    public ImageView getItemRow() {
+        Log.d(LOG_TAG, "rowsList: " + this.rowsList.size());
+
+        if(this.rowsList.size() == 0) {
+            return null;
+        }
+
+        return this.rowsList.get(this.rowsList.size() - 1);
+    }
+
     @Override
     /**
      * Describes the translation between the data item and the View to display.
      * Returns the actual view used as a row within the ListView at a particular position.
      */
     public View getView(int position, View convertView, ViewGroup parent) {
+        Log.d(LOG_TAG, "MessagePosition: " + position);
+
         // which message should be inserted
         MessageModel chatMessage = getItem(position);
 
-        // check if an existing view is being reused, otherwise inflate the view
-        View row = convertView;
-        if (row == null) {
-            LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(
-                    Context.LAYOUT_INFLATER_SERVICE);
+        // get all available layouts
+        LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(
+                Context.LAYOUT_INFLATER_SERVICE);
 
-            // message of the owner?
-            if(chatMessage.isOwner()) {
-                // position message on the right
-                row = inflater.inflate(R.layout.activity_chat_message_right, parent, false);
-            }
-            else {
-                // not the owner, position message on the left
-                row = inflater.inflate(R.layout.activity_chat_message_left, parent, false);
+        // message of the owner?
+        Log.d(LOG_TAG, "MessageOwner: " + chatMessage.isOwner());
+        View row = null;
+        if(chatMessage.isOwner()) {
+            // position message on the right
+            row = inflater.inflate(R.layout.activity_chat_message_right, parent, false);
+        }
+        else {
+            // not the owner, position message on the left
+            row = inflater.inflate(R.layout.activity_chat_message_left, parent, false);
 
-                // set username
-                TextView usernameText = (TextView) row.findViewById(R.id.single_message_username);
-                usernameText.setText(chatMessage.getOwnerName());
-            }
+            // set username
+            TextView usernameText = (TextView) row.findViewById(R.id.single_message_username);
+            usernameText.setText(chatMessage.getOwnerName());
         }
 
         // lookup view and populate it
@@ -100,6 +113,9 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
         chatText.setText(chatMessage.getMessage());
 
         // return the completed view to render on screen
+        //ImageView statusIndicator = (ImageView) row.findViewById(R.id.single_message_status);
+        //rowsList.add(statusIndicator);
+        //Log.d(LOG_TAG, "statusIndicator added");
         return row;
     }
 

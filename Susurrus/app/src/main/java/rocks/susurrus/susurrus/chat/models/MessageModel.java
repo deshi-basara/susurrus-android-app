@@ -40,10 +40,11 @@ public class MessageModel implements Serializable {
         return this.message;
     }
     public String getOwnerName() { return this.ownerName; }
+    public InetAddress getOwnerAddress() {
+        return this.ownerAddress;
+    }
 
     public Boolean isOwner() {
-        Log.d(LOG_TAG, "isOwner: " + this.owner);
-
         return this.owner;
     }
 

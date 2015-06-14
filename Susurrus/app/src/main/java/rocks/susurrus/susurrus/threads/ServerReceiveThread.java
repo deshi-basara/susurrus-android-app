@@ -70,7 +70,7 @@ public class ServerReceiveThread implements Runnable {
                 //publishProgress(receivedMessage);
             }
 
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -94,8 +94,6 @@ public class ServerReceiveThread implements Runnable {
      * @param receivedMessage Message sent by a client to the master-socket.
      */
     private void publishMessage(MessageModel receivedMessage) {
-        Log.d(LOG_TAG, "PublishMessage");
-
         Message outputMessage = this.handler.obtainMessage(1, receivedMessage);
         outputMessage.sendToTarget();
     }

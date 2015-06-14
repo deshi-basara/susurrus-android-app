@@ -91,7 +91,7 @@ public class RoomAdapter extends ArrayAdapter<RoomModel> {
         userCount.setText("4");
 
         // no password needed, hide lock
-        if(!room.isRoomEncrypted()) {
+        if(!room.hasEncryption()) {
             roomEncrypted.setVisibility(View.INVISIBLE);
         }
 
