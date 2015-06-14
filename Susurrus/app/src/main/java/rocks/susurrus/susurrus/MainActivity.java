@@ -17,6 +17,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBarActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -73,6 +74,7 @@ public class MainActivity extends ActionBarActivity {
     private ListView roomsList;
     private RippleBackground rippleBackground;
     private MaterialDialog roomJoinDialog;
+    private MaterialDialog roomPasswordDialog;
 
     /**
      * Data
@@ -291,24 +293,77 @@ public class MainActivity extends ActionBarActivity {
             OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            showRoomJoinFeedback();
-
-            // get room deviceAddress and try to establish a connection
+            // get clicked room
             clickedRoom = roomAdapter.getItem(position);
-            wifiDirectService.setupWifiDirectReceiver();
-            wifiDirectService.connectToLocalService(clickedRoom, MainActivity.this);
 
-            Log.d(LOG_TAG, "Connection to room established: " + clickedRoom.getRoomName());
+            // does the room need a password
+            if(clickedRoom.hasEncryption()) {
+                // show password dialog first
+                showPasswordDialog(true);
+            }
+            else {
+                showJoiningDialog();
+            }
         }
     };
 
-    private void showRoomJoinFeedback() {
+    private void showPasswordDialog(final boolean firstAuthentication) {
+
+        // show a password dialog, before joining
+        roomPasswordDialog = new MaterialDialog.Builder(MainActivity.this)
+                .title(R.string.main_dialog_headline)
+                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+                .input(R.string.main_dialog_password_hint, 0, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                        String enteredPassword = input.toString();
+
+                        // valid password?
+                        if (enteredPassword.isEmpty()) {
+                            return;
+                        } else {
+                            // valid, set password
+                            clickedRoom.setPassword(enteredPassword);
+
+                            // first authentication try?
+                            if(firstAuthentication) {
+                                // first time, start joining normally
+                                showJoiningDialog();
+                            }
+                            else {
+                                // not the first time, client must have entered a wrong password.
+                                // Try authentication one more time
+                                startAuthentication();
+                            }
+                        }
+                    }
+                })
+                .negativeText(R.string.main_dialog_cancel)
+                .show();
+
+        if(firstAuthentication) {
+            roomPasswordDialog.setContent(R.string.main_dialog_password_content);
+        }
+        else {
+            // give user feedback, that he entered a wrong password
+            roomPasswordDialog.setContent(R.string.main_dialog_password_wrong);
+        }
+
+    }
+
+    private void showJoiningDialog() {
+
+        // show a normal progress dialog
         roomJoinDialog = new MaterialDialog.Builder(MainActivity.this)
                 .title(R.string.main_dialog_headline)
                 .content(R.string.main_dialog_content)
                 .progress(false, 100)
                 .negativeText(R.string.main_dialog_cancel)
                 .show();
+
+        // try to establish a connection
+        wifiDirectService.setupWifiDirectReceiver();
+        wifiDirectService.connectToLocalService(clickedRoom, MainActivity.this);
     }
 
     public void showRoomJoinFeedbackUpdate(final int authenticationState) {
@@ -343,14 +398,13 @@ public class MainActivity extends ActionBarActivity {
 
                         break;
                     case ClientAuthenticationTask.SOCKET_PASSWORD_NEEDED:
-                        //@todo insert password
+                        //@todo not needed?!
 
                         break;
                     case ClientAuthenticationTask.SOCKET_PASSWORD_WRONG:
-                        // wrong password, redo the authentication
+                        // wrong password, ask for new password and redo the authentication
 
-                        //@todo enter new password
-                        startAuthentication();
+                        showPasswordDialog(false);
 
                         break;
                     case ClientAuthenticationTask.SOCKET_AUTHENTICATED:
@@ -388,14 +442,13 @@ public class MainActivity extends ActionBarActivity {
         Log.d(LOG_TAG, "startAuthentication");
 
         // create a new authentication model
-        AuthModel authRequest = new AuthModel("password", "public");
-        //@todo insert real values
+        AuthModel authRequest = new AuthModel(this.clickedRoom.getRoomPassword(), "public");
+        //@todo insert real publicKey
 
         // get an instance of the wifiDirectReceiver
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();
 
-        Log.d(LOG_TAG, "masterAddress: " + wifiDirectReceiver.getMasterAddress());
-
+        // start authentication
         this.authTask = new ClientAuthenticationTask(
                 this.authHandler,
                 MainActivity.this,

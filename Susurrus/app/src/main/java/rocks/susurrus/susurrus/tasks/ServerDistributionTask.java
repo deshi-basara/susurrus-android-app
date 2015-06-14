@@ -53,7 +53,7 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
      * Executed when the AsyncTask is started.
      */
     protected Boolean doInBackground(MessageModel... messageModels) {
-        Log.d(LOG_TAG, "Starting the messaging-distribution-client ...");
+        Log.d(LOG_TAG, "Starting the server-distribution-task ...");
 
         // send message to all authenticated clients
         try {
@@ -62,6 +62,7 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
             InetAddress ownerAddress = messageModels[0].getOwnerAddress();
             // loop through all authenticated clients
+            Log.d(LOG_TAG, "availableClients: " + authenticatedClients.size());
             for(int i = 0; i < authenticatedClients.size(); i++) {
                 InetAddress currentAddress = authenticatedClients.get(i);
 

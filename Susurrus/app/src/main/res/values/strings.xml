@@ -27,6 +27,9 @@
     <string name="main_dialog_content">
         Baue Verbindung auf ...
     </string>
+    <string name="main_dialog_password_content">Der Raum benötigt ein Passwort</string>
+    <string name="main_dialog_password_wrong">Das Passwort ist leider falsch</string>
+    <string name="main_dialog_password_hint">Passwort eingeben</string>
     <string name="main_dialog_group_connected">Chat akzeptiert die Verbindung ...</string>
     <string name="main_dialog_group_not_connected">Chat akzeptiert keine Verbindung ...</string>
     <string name="main_dialog_connected">Chat ist erreichbar ...</string>
