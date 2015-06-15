@@ -82,18 +82,19 @@ public class RoomAdapter extends ArrayAdapter<RoomModel> {
         TextView roomOwner = (TextView) convertView.findViewById(R.id.main_room_owner);
         TextView roomCategory = (TextView) convertView.findViewById(R.id.main_room_category);
         ImageView roomEncrypted = (ImageView) convertView.findViewById(R.id.main_room_lock_img);
-        TextView userCount = (TextView) convertView.findViewById(R.id.main_room_users_count);
+        //TextView userCount = (TextView) convertView.findViewById(R.id.main_room_users_count);
 
         // populate the data into the template view using the data object
         roomName.setText(room.getRoomName());
         roomOwner.setText(room.getOwnerName());
         roomCategory.setText(room.getRoomCategory());
-        userCount.setText("4");
+        //userCount.setText("4");
 
         // no password needed, hide lock
         if(!room.hasEncryption()) {
             roomEncrypted.setVisibility(View.INVISIBLE);
         }
+        //@todo PublicKey trusted?
 
         // return the completed view to render on screen
         return convertView;

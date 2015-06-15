@@ -79,7 +79,7 @@ public class RoomModel implements Serializable {
         return this.roomName;
     }
     public String getRoomCategory() {
-        return this.roomName;
+        return this.roomCategory;
     }
 
     public boolean hasEncryption() {
