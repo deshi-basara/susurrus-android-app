@@ -90,7 +90,7 @@
     <string name="chat_drawer_open">Menü öffnen</string>
     <string name="chat_warn_exit_title">Raum verlassen</string>
     <string name="chat_warn_exit_content_master">
-        Wenn du den Raum verlässt, wird der Chat-Raum geschlossen. Möchtest du fortfahren?
+        Wenn du den Raum verlässt, wird der Chat geschlossen. Möchtest du fortfahren?
     </string>
     <string name="chat_warn_exit_content_slave">
         Möchtest du den Raum wirklich verlassen?
@@ -109,6 +109,14 @@
     <string name="settings_generate_key_content">Einen Moment Geduld ...</string>
     <string name="settings_generate_key_done">Speichere neuen Schlüssel ...</string>
     <string name="settings_change_password">Neues Applikations-Password festlegen</string>
+
+    <!--
+        Notifications
+    -->
+    <string name="notify_running_title">Susurrus</string>
+    <string name="notify_running_content">Susurrus läuft im Hintergrund</string>
+    <string name="notify_running_stop">Beenden</string>
+
 
 
 
