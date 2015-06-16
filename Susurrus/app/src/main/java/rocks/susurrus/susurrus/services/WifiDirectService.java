@@ -8,6 +8,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -304,30 +307,30 @@ public class WifiDirectService extends Service {
         // the request.
         wifiDirectManager.addLocalService(wifiDirectChannel, this.roomInfo,
                 new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Log.d(LOG_TAG, "... service created.");
+                    @Override
+                    public void onSuccess() {
+                        Log.d(LOG_TAG, "... service created.");
 
-                // send feedback
-                feedbackActivity.registerWifiDialogUpdate(GROUP_CREATED);
+                        // send feedback
+                        feedbackActivity.registerWifiDialogUpdate(GROUP_CREATED);
 
-                discoverLocalServices();
-            }
+                        discoverLocalServices();
+                    }
 
-            @Override
-            public void onFailure(int errorCode) {
-                // command failed, check for P2P_UNSUPPORTED, ERROR, or BUSY
-                if (errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
-                    Log.d(LOG_TAG, "... service error code: P2P_UNSUPPORTED");
-                } else if (errorCode == WifiP2pManager.ERROR) {
-                    Log.d(LOG_TAG, "... service error code: ERROR");
-                } else if (errorCode == WifiP2pManager.BUSY) {
-                    Log.d(LOG_TAG, "... service error code: BUSY");
-                }
+                    @Override
+                    public void onFailure(int errorCode) {
+                        // command failed, check for P2P_UNSUPPORTED, ERROR, or BUSY
+                        if (errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
+                            Log.d(LOG_TAG, "... service error code: P2P_UNSUPPORTED");
+                        } else if (errorCode == WifiP2pManager.ERROR) {
+                            Log.d(LOG_TAG, "... service error code: ERROR");
+                        } else if (errorCode == WifiP2pManager.BUSY) {
+                            Log.d(LOG_TAG, "... service error code: BUSY");
+                        }
 
-                feedbackActivity.registerWifiDialogUpdate(GROUP_ERROR);
-            }
-        });
+                        feedbackActivity.registerWifiDialogUpdate(GROUP_ERROR);
+                    }
+                });
     }
 
     /**
@@ -337,17 +340,17 @@ public class WifiDirectService extends Service {
     public void removeLocalService() {
         wifiDirectManager.removeLocalService(wifiDirectChannel, this.roomInfo,
                 new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                Log.d(LOG_TAG, "Service removed.");
-            }
+                    @Override
+                    public void onSuccess() {
+                        Log.d(LOG_TAG, "Service removed.");
+                    }
 
-            @Override
-            public void onFailure(int errorCode) {
+                    @Override
+                    public void onFailure(int errorCode) {
 
-                Log.d(LOG_TAG, "Service remove error: " + errorCode);
-            }
-        });
+                        Log.d(LOG_TAG, "Service remove error: " + errorCode);
+                    }
+                });
     }
 
     /**
@@ -407,13 +410,11 @@ public class WifiDirectService extends Service {
                     @Override
                     public void onFailure(int errorCode) {
                         // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                        if(errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
+                        if (errorCode == WifiP2pManager.P2P_UNSUPPORTED) {
                             Log.d(LOG_TAG, "P2P isn't supported on this device.");
-                        }
-                        else if(errorCode == WifiP2pManager.ERROR) {
+                        } else if (errorCode == WifiP2pManager.ERROR) {
                             Log.d(LOG_TAG, "Error on this device.");
-                        }
-                        else if(errorCode == WifiP2pManager.BUSY) {
+                        } else if (errorCode == WifiP2pManager.BUSY) {
                             Log.d(LOG_TAG, "Busy on this device.");
                         }
                     }
@@ -421,6 +422,27 @@ public class WifiDirectService extends Service {
         );
     }
 
+    /**
+     * Checks if the user is already connected to a wifi access point.
+     * @return True, if connected.
+     */
+    public boolean isAlreadyConnected() {
+        // get an instance of the wifi-manager and information of the current access point
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        SupplicantState supplicantState = wifiInfo.getSupplicantState();
+
+        // does the supplicant wifi-cli have a completed-state?
+        if(SupplicantState.COMPLETED.equals(supplicantState)) {
+            // completed state, connected to access point
+            Log.d(LOG_TAG, "Already connected to an access point");
+
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 
     /**
      * On receive listener: wifiDirectManager.

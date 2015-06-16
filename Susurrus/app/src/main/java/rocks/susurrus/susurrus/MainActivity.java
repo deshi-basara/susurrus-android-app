@@ -16,6 +16,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
 import android.util.Log;
@@ -87,36 +88,10 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // did the user start the app for the first time?
-        if(firstStart) {
-            // true, show intro
-            Intent intentIntro = new Intent(this, IntroActivity.class);
-            startActivity(intentIntro);
-        }
-        else if(false) {
-            Intent intentChat = new Intent(this, ChatActivity.class);
-            intentChat.putExtra("ROOM_NAME", "Simon@testing");
-            startActivity(intentChat);
-        }
-
-        /*if(isAlreadyConnected()) {
-            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            Log.d(LOG_TAG, "Forcing disconnect");
-
-            wifiManager.disconnect();
-
-            WifiDisconnector disconnector = new WifiDisconnector(wifiManager);
-            registerReceiver(disconnector, new IntentFilter(WifiManager.
-                    SUPPLICANT_STATE_CHANGED_ACTION));
-        }*/
-
+        setupFirstStart();
         setupView();
         setupHandler();
-
-        // start and bind the wifiDirectService
-        intentService = new Intent(this, WifiDirectService.class);
-        startService(intentService);
-        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
+        setupServices();
 
         Log.d(LOG_TAG, "MainActivity created.");
     }
@@ -171,6 +146,19 @@ public class MainActivity extends ActionBarActivity {
     }
 
     /**
+     * Checks if the user started the app for the first time. If true he is redirected to
+     * the IntroActivity.
+     */
+    private void setupFirstStart() {
+        // did the user start the app for the first time?
+        if(firstStart) {
+            // true, show intro
+            Intent intentIntro = new Intent(this, IntroActivity.class);
+            startActivity(intentIntro);
+        }
+    }
+
+    /**
      * Setups all needed views, events, adapters, ...
      */
     private void setupView() {
@@ -214,25 +202,40 @@ public class MainActivity extends ActionBarActivity {
     }
 
     /**
-     * Checks if the user is already connected to a wifi access point.
-     * @return True, if connected.
+     * Starts and binds all needed services.
      */
-    private boolean isAlreadyConnected() {
-        // get an instance of the wifi-manager and information of the current access point
-        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        SupplicantState supplicantState = wifiInfo.getSupplicantState();
+    private void setupServices() {
+        // start and bind the wifiDirectService
+        intentService = new Intent(this, WifiDirectService.class);
+        startService(intentService);
+        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
 
-        // does the supplicant wifi-cli have a completed-state?
-        if(SupplicantState.COMPLETED.equals(supplicantState)) {
-            // completed state, connected to access point
-            Log.d(LOG_TAG, "Already connected to an access point");
+    /**
+     * Shows a warning-dialog if the user is already connected to a Wifi-access-point.
+     */
+    private void showAccessPointWarning() {
 
-            return true;
-        }
-        else {
-            return false;
-        }
+        new MaterialDialog.Builder(this)
+                .title(R.string.main_warn_wifi_title)
+                .content(R.string.main_warn_wifi_content)
+                .positiveText(R.string.main_warn_wifi_proceed)
+                .negativeText(R.string.main_warn_wifi_cancel)
+                .callback(new MaterialDialog.ButtonCallback() {
+                    @Override
+                    public void onPositive(MaterialDialog dialog) {
+                        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                        Log.d(LOG_TAG, "Forcing disconnect");
+
+                        wifiManager.disconnect();
+
+                        WifiDisconnector disconnector = new WifiDisconnector(wifiManager);
+                        registerReceiver(disconnector, new IntentFilter(WifiManager.
+                                SUPPLICANT_STATE_CHANGED_ACTION));
+                    }
+                })
+                .show();
+
     }
 
     /**
@@ -482,6 +485,11 @@ public class MainActivity extends ActionBarActivity {
             wifiDirectService.setMainActivity(MainActivity.this);
             wifiDirectService.setRoomAdapter(roomAdapter);
             isWifiDirectServiceBound = true;
+
+            // user already connected?
+            if(wifiDirectService.isAlreadyConnected()) {
+                showAccessPointWarning();
+            }
         }
 
         @Override

@@ -18,6 +18,13 @@
         Benutze den Refresh-Button um deine \n Umgebung
         zu scannen.
     </string>
+    <string name="main_warn_wifi_title">Bereits verbunden</string>
+    <string name="main_warn_wifi_content">
+        Du bist leider schon mit einem Wlan-Access-Point verbunden. Soll Susurrus für dich die
+        Verbindung trennen?
+    </string>
+    <string name="main_warn_wifi_proceed">Trennen</string>
+    <string name="main_warn_wifi_cancel">Abbrechen</string>
 
     <!-- Main Activity Room Item -->
     <string name="main_room_owner_desc">von</string>
@@ -60,8 +67,6 @@
     <string name="intro_four_headline">Generiere</string>
     <string name="title_activity_chat">ChatActivity</string>
     <string name="title_activity_create">CreateActivity</string>
-
-
 
     <!--
         Create Activity
