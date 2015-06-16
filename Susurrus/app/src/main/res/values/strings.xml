@@ -88,6 +88,16 @@
     <string name="chat_drawer_title">Menü</string>
     <string name="chat_drawer_close">Menü schließen</string>
     <string name="chat_drawer_open">Menü öffnen</string>
+    <string name="chat_warn_exit_title">Raum verlassen</string>
+    <string name="chat_warn_exit_content_master">
+        Wenn du den Raum verlässt, wird der Chat-Raum geschlossen. Möchtest du fortfahren?
+    </string>
+    <string name="chat_warn_exit_content_slave">
+        Möchtest du den Raum wirklich verlassen?
+    </string>
+    <string name="chat_warn_exit_proceed">Weiter</string>
+    <string name="chat_warn_exit_cancel">Abbrechen</string>
+
 
     <!--
         Settings

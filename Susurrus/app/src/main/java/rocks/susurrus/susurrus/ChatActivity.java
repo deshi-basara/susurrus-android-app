@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -24,8 +25,9 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
@@ -139,8 +141,10 @@ public class ChatActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        Log.d(LOG_TAG, "Id: " + id);
+
         // drawer toggle requested
-        if (id == R.id.action_list) {
+        if(id == R.id.action_list) {
 
             // drawer not open?
             if(!chatDrawerOpen) {
@@ -153,6 +157,13 @@ public class ChatActivity extends ActionBarActivity {
                 chatDrawerLayout.closeDrawer(Gravity.RIGHT);
                 chatDrawerOpen = false;
             }
+
+            return true;
+        }
+        // back button
+        else if(id == android.R.id.home) {
+            Log.d(LOG_TAG, "HOME");
+            showExitWarning();
 
             return true;
         }
@@ -181,6 +192,18 @@ public class ChatActivity extends ActionBarActivity {
         }
     }
 
+    @Override
+    /**
+     * Is executed whenever the back-button on an android-keyboard was touched.
+     */
+    public void onBackPressed() {
+        Log.d(LOG_TAG, "OnBackPressed");
+
+        showExitWarning();
+
+        //super.onBackPressed();
+    }
+
     /**
      * Sets the actionBar's title accordingy to the handed chatRoom name.
      */
@@ -193,6 +216,7 @@ public class ChatActivity extends ActionBarActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle(actionTitle);
         actionBar.setSubtitle("1 Teilnehmer");
+        //@todo R.string
 
         // setup backButton
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -239,6 +263,44 @@ public class ChatActivity extends ActionBarActivity {
         messageInputText.setOnKeyListener(messageInputTextListener);
         messageSendButton.setOnClickListener(messageSendButtonListener);
         chatDrawerLayout.setDrawerListener(chatDrawerToggle);
+    }
+
+    /**
+     * Shows a warning-dialog on the screen, when a back-button was touched.
+     */
+    private void showExitWarning() {
+
+        // warn masterNode from killing the chat room
+        if(isMasterNode) {
+            new MaterialDialog.Builder(this)
+                    .title(R.string.chat_warn_exit_title)
+                    .content(R.string.chat_warn_exit_content_master)
+                    .positiveText(R.string.chat_warn_exit_proceed)
+                    .negativeText(R.string.chat_warn_exit_cancel)
+                    .callback(new MaterialDialog.ButtonCallback() {
+                        @Override
+                        public void onPositive(MaterialDialog dialog) {
+                            NavUtils.navigateUpFromSameTask(ChatActivity.this);
+                        }
+                    })
+                    .show();
+
+        }
+        // warn clientNode from closing the chat room
+        else {
+            new MaterialDialog.Builder(this)
+                    .title(R.string.chat_warn_exit_title)
+                    .content(R.string.chat_warn_exit_content_slave)
+                    .positiveText(R.string.chat_warn_exit_proceed)
+                    .negativeText(R.string.chat_warn_exit_cancel)
+                    .callback(new MaterialDialog.ButtonCallback() {
+                        @Override
+                        public void onPositive(MaterialDialog dialog) {
+                            NavUtils.navigateUpFromSameTask(ChatActivity.this);
+                        }
+                    })
+                    .show();
+        }
     }
 
     /**
