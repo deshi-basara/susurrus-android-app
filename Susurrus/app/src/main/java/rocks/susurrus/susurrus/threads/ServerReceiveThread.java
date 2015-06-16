@@ -17,7 +17,7 @@ import rocks.susurrus.susurrus.services.WifiDirectService;
 /**
  * Created by simon on 07.06.15.
  */
-public class ServerReceiveThread implements Runnable {
+public class ServerReceiveThread extends Thread {
     public static final String LOG_TAG = "ServerReceiveThread";
 
     /**
@@ -30,6 +30,11 @@ public class ServerReceiveThread implements Runnable {
      */
     private ServerSocket socket;
 
+    /**
+     * Data
+     */
+    private boolean isRunning = true;
+
     public ServerReceiveThread(Handler chatHandler){
         this.handler = chatHandler;
     }
@@ -39,13 +44,13 @@ public class ServerReceiveThread implements Runnable {
      * Is executed when thread is started.
      */
     public void run() {
-        Log.d(LOG_TAG, "ServerReceive-Thread starting ...");
+        Log.d(LOG_TAG, "Chat-Thread started.");
 
         try {
             // create a new socket server
             socket = new ServerSocket(WifiDirectService.SERVICE_PORT);
 
-            while(true){
+            while(this.isRunning && !isInterrupted()){
 
                 // only accept on connection to server at the time
                 Socket connectedClient = socket.accept();
@@ -74,19 +79,20 @@ public class ServerReceiveThread implements Runnable {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        }
-    }
+        } finally {
+            if(socket != null) {
+                // close a potentially opened socket connection on cancellation
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-    /**
-     * Invoked if thread is stopped.
-     */
-    protected void onStop() {
-        // close a potentially opened socket connection on cancellation
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+                Log.d(LOG_TAG, "Chat-Socket closed.");
+            }
         }
+
+        Log.d(LOG_TAG, "Chat-Thread stopped.");
     }
 
     /**
@@ -96,5 +102,25 @@ public class ServerReceiveThread implements Runnable {
     private void publishMessage(MessageModel receivedMessage) {
         Message outputMessage = this.handler.obtainMessage(1, receivedMessage);
         outputMessage.sendToTarget();
+    }
+
+    /**
+     * Requests the termination/interruption of the thread.
+     */
+    public void terminate() {
+        this.isRunning = false;
+        interrupt();
+
+        if(this.socket != null) {
+            // try to close the authentication socket.
+            try {
+                // make sure you close the socket upon exiting
+                this.socket.close();
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+
+            Log.d(LOG_TAG, "Chat-Socket closed.");
+        }
     }
 }

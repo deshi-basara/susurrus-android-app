@@ -20,7 +20,7 @@ import rocks.susurrus.susurrus.services.WifiDirectService;
 /**
  * Created by simon on 07.06.15.
  */
-public class ServerAuthenticationThread implements Runnable {
+public class ServerAuthenticationThread extends Thread {
     public static final String LOG_TAG = "ServerAuthentication";
 
     /**
@@ -32,6 +32,7 @@ public class ServerAuthenticationThread implements Runnable {
     /**
      * Data
      */
+    private boolean isRunning = true;
     private RoomModel administratedRoom;
 
     /**
@@ -48,7 +49,7 @@ public class ServerAuthenticationThread implements Runnable {
      * Is executed when thread is started.
      */
     public void run() {
-        Log.d(LOG_TAG, "Authentication-Thread starting ...");
+        Log.d(LOG_TAG, "Authentication-Thread started.");
 
         // clear list from potential outdated clients
         this.authenticatedClients.clear();
@@ -57,7 +58,7 @@ public class ServerAuthenticationThread implements Runnable {
             // create a new socket server
             authSocket = new ServerSocket(WifiDirectService.SERVICE_AUTH_PORT);
 
-            while(true) {
+            while(this.isRunning && !Thread.interrupted()) {
 
                 // only allow one connection at once
                 Socket authClient = authSocket.accept();
@@ -109,22 +110,22 @@ public class ServerAuthenticationThread implements Runnable {
             e.printStackTrace();
         } catch(ClassNotFoundException e) {
             e.printStackTrace();
-        }
-    }
+        } finally {
+            if(authSocket != null) {
+                // try to close the authentication socket.
+                try {
+                    // make sure you close the socket upon exiting
+                    authSocket.close();
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
 
-    /**
-     * Invoked if thread is stopped.
-     */
-    public void onStop() {
-        // try to close the authentication socket.
-        try {
-            // make sure you close the socket upon exiting
-            authSocket.close();
-        } catch(IOException e) {
-            e.printStackTrace();
+                Log.d(LOG_TAG, "Authentication-Socket closed.");
+            }
         }
-    }
 
+        Log.d(LOG_TAG, "Authentication-Thread stopped.");
+    }
 
     private boolean isValidRequest(AuthModel request) {
         try {
@@ -147,6 +148,26 @@ public class ServerAuthenticationThread implements Runnable {
         }
         else {
             return false;
+        }
+    }
+
+    /**
+     * Requests the termination/interruption of the thread.
+     */
+    public void terminate() {
+        this.isRunning = false;
+        interrupt();
+
+        if(authSocket != null) {
+            // try to close the authentication socket.
+            try {
+                // make sure you close the socket upon exiting
+                authSocket.close();
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+
+            Log.d(LOG_TAG, "Authentication-Socket closed.");
         }
     }
 }

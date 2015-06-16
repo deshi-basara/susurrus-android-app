@@ -1,12 +1,19 @@
 package rocks.susurrus.susurrus.services;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.TaskStackBuilder;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import rocks.susurrus.susurrus.ChatActivity;
+import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
 import rocks.susurrus.susurrus.threads.ServerReceiveThread;
@@ -17,6 +24,8 @@ public class MasterService extends Service {
     /**
      * Networking
      */
+    private ServerAuthenticationThread authRunnable;
+    private ServerReceiveThread receiveRunnable;
     private Thread authThread;
     private Thread chatThread;
     private boolean isAuthenticated = false;
@@ -58,13 +67,29 @@ public class MasterService extends Service {
         // get roomData via intent extras
         roomData = (RoomModel) intent.getSerializableExtra("ROOM_MODEL");
 
-        // start the authentication socket
-        //this.initiateAuthentication();
-
-        // start the messaging socket
-        //this.initiateChat();
+        Log.d(LOG_TAG, "MasterService created.");
 
         return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if(this.isAuthenticated) {
+            Log.d(LOG_TAG, "Stopping: authThread [Thread]");
+
+            this.authRunnable.terminate();
+            this.isAuthenticated = false;
+        }
+        if(this.hasChat) {
+            Log.d(LOG_TAG, "Stopping: chatThread [Thread]");
+
+            this.receiveRunnable.terminate();
+            this.hasChat = false;
+        }
+
+        Log.d(LOG_TAG, "MasterService destroyed.");
     }
 
     /**
@@ -74,11 +99,13 @@ public class MasterService extends Service {
 
         if(!isAuthenticated) {
             // create a thread, for authenticating with the service/room
-            ServerAuthenticationThread auth = new ServerAuthenticationThread(
+            this.authRunnable = new ServerAuthenticationThread(
                     this.roomData);
 
-            this.authThread = new Thread(auth);
-            this.authThread.start();
+            this.authRunnable.start();
+
+            //this.authThread = new Thread(this.authRunnable);
+            //this.authThread.start();
 
             this.isAuthenticated = true;
         }
@@ -92,14 +119,17 @@ public class MasterService extends Service {
 
         if(!this.hasChat) {
             // create a thread, for messaging with the service/room
-            ServerReceiveThread receive = new ServerReceiveThread(this.chatHandler);
+            this.receiveRunnable = new ServerReceiveThread(this.chatHandler);
 
-            this.chatThread = new Thread(receive);
-            this.chatThread.start();
+            this.receiveRunnable.start();
+
+            //this.chatThread = new Thread(this.receiveRunnable);
+            //this.chatThread.start();
 
             this.hasChat = true;
         }
     }
+
 
     /**
      * Getter/Setter
