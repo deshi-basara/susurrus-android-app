@@ -35,7 +35,6 @@
             <EditText
                 android:id="@+id/create_room_name"
                 android:maxLength="20"
-                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/create_room_name_hint"
@@ -70,7 +69,6 @@
             <EditText
                 android:id="@+id/create_room_category"
                 android:maxLength="20"
-                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                 android:layout_width="300dp"
                 android:layout_height="wrap_content"
                 android:hint="@string/create_room_category_hint"

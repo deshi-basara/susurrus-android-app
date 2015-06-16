@@ -36,7 +36,6 @@
                 <EditText
                     android:id="@+id/settings_user_name"
                     android:maxLength="20"
-                    android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/create_room_image"
