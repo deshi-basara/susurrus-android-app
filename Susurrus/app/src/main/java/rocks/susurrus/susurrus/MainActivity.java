@@ -117,6 +117,8 @@ public class MainActivity extends ActionBarActivity {
         intentService = new Intent(this, WifiDirectService.class);
         startService(intentService);
         bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        Log.d(LOG_TAG, "MainActivity created.");
     }
 
     @Override
@@ -142,26 +144,14 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /* register the broadcast receiver with the intent values to be matched */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // register our broadcast receiver, which is called when an intentFilter matches
-        //registerReceiver(wifiReceiver, wifiIntentFilter);
-    }
-    /* unregister the broadcast receiver */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        //unregisterReceiver(wifiReceiver);
-    }
-
     @Override
     /**
-     * Is executed, when the Activity is destroyed
+     * Is executed, when the Activity is destroyed.
      */
     protected void onDestroy() {
         super.onDestroy();
+
+        Log.d(LOG_TAG, "ONDESTROY!");
 
         // destroy running AsyncTasks (needed for lower Android-versions)
         if(this.authTask != null) {
@@ -170,12 +160,14 @@ public class MainActivity extends ActionBarActivity {
         }
         if(this.isWifiDirectServiceBound) {
             Log.d(LOG_TAG, "Unbinding: wifiDirectService [Service]");
-            //unbindService(serviceConnection);
+            unbindService(serviceConnection);
         }
-        if(this.intentService != null) {
+        /*if(this.intentService != null) {
             Log.d(LOG_TAG, "Destroying: wifiDirectService [Service]");
-            //stopService(this.intentService);
-        }
+            stopService(this.intentService);
+        }*/
+
+        Log.d(LOG_TAG, "MainActivity destroyed.");
     }
 
     /**

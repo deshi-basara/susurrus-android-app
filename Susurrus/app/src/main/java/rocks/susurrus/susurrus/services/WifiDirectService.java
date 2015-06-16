@@ -114,8 +114,6 @@ public class WifiDirectService extends Service {
         // setup all needed networking interfaces
         this.initiateNetworking();
 
-        // setup
-
         // setup status icon
         this.showNotificationIcon();
 
@@ -130,7 +128,7 @@ public class WifiDirectService extends Service {
         super.onDestroy();
 
         if(this.isWifiDirectReceiverRegistered) {
-            Log.d(LOG_TAG, "Unregistering: wifiDirectReceiver [Broadcast-Receiver]");
+            Log.d(LOG_TAG, "Unregister: wifiDirectReceiver [Broadcast-Receiver]");
             // unregister WifiP2P-broadcast listener
             unregisterReceiver(this.wifiDirectReceiver);
         }

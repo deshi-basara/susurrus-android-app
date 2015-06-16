@@ -34,6 +34,7 @@ import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.services.MasterService;
+import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
 import rocks.susurrus.susurrus.tasks.ServerDistributionTask;
 import rocks.susurrus.susurrus.utils.Settings;
@@ -45,6 +46,9 @@ public class ChatActivity extends ActionBarActivity {
     /**
      * Threads/Handler/Services
      */
+    WifiDirectService wifiDirectService;
+    Intent wifiDirectIntent;
+    boolean isWifiDirectServiceBound = false;
     MasterService masterService;
     Intent chatService;
     boolean isChatServiceBound = false;
@@ -79,16 +83,9 @@ public class ChatActivity extends ActionBarActivity {
         //startService(new Intent(this, ChatService.class));
 
         setupData();
+        setupServices();
 
-        // is our user the MasterNode of the whole network?
-        if(this.isMasterNode) {
-            // start auth- and receive-thread
-            setupMaster();
-        }
-        else {
-            // start only the receive-thread
-            setupSlave();
-        }
+        Log.d(LOG_TAG, "ChatActivity created.");
     }
 
     private void setupData() {
@@ -102,6 +99,23 @@ public class ChatActivity extends ActionBarActivity {
         // get username
         SharedPreferences settings = getSharedPreferences(Settings.PREF_ID, 0);
         userName = settings.getString(Settings.PREF_USER_NAME, "Anonymous");
+    }
+
+    private void setupServices() {
+        // start and bind the wifiDirectService
+        this.wifiDirectIntent = new Intent(this, WifiDirectService.class);
+        startService(this.wifiDirectIntent);
+        bindService(this.wifiDirectIntent, wifiDirectConnection, Context.BIND_AUTO_CREATE);
+
+        // is our user the MasterNode of the whole network?
+        if(this.isMasterNode) {
+            // start auth- and receive-thread
+            setupMaster();
+        }
+        else {
+            // start only the receive-thread
+            setupSlave();
+        }
     }
 
     private void setupMaster() {
@@ -141,8 +155,6 @@ public class ChatActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        Log.d(LOG_TAG, "Id: " + id);
-
         // drawer toggle requested
         if(id == R.id.action_list) {
 
@@ -162,7 +174,6 @@ public class ChatActivity extends ActionBarActivity {
         }
         // back button
         else if(id == android.R.id.home) {
-            Log.d(LOG_TAG, "HOME");
             showExitWarning();
 
             return true;
@@ -178,18 +189,32 @@ public class ChatActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // destroy running AsyncTasks (needed for lower Android-versions)
+        // destroy the local room-service, if masterNode
+        if(isMasterNode) {
+            wifiDirectService.removeLocalService();
+        }
+
+        // unbind & destroy the chatService
         if(this.chatService != null && this.isChatServiceBound) {
-            Log.d(LOG_TAG, "Destroying: chatService [Service]");
+            Log.d(LOG_TAG, "Unbinding: chatService [ServiceConnection]");
             if(isMasterNode) {
-                unbindService(masterConnection);
+                unbindService(this.masterConnection);
             }
             else {
-                unbindService(slaveConnection);
+                unbindService(this.slaveConnection);
             }
 
+            Log.d(LOG_TAG, "Stopping: chatService [Service]");
             stopService(this.chatService);
         }
+
+        // unbind the wifiDirectService
+        if(this.wifiDirectService != null && this.isWifiDirectServiceBound) {
+            Log.d(LOG_TAG, "Unbinding: wifiDirectService [ServiceConnection]");
+            unbindService(this.wifiDirectConnection);
+        }
+
+        Log.d(LOG_TAG, "ChatActivity destroyed.");
     }
 
     @Override
@@ -395,7 +420,7 @@ public class ChatActivity extends ActionBarActivity {
     };
 
     /**
-     * Connection to the external wifiDirectService-process for MasterNode.
+     * Connection to the external MessengerService-process for MasterNode.
      */
     private ServiceConnection masterConnection = new ServiceConnection() {
         @Override
@@ -415,7 +440,7 @@ public class ChatActivity extends ActionBarActivity {
     };
 
     /**
-     * Connection to the external wifiDirectService-process for SlaveNodes.
+     * Connection to the external MessengerService-process for SlaveNodes.
      */
     private ServiceConnection slaveConnection = new ServiceConnection() {
         @Override
@@ -430,6 +455,23 @@ public class ChatActivity extends ActionBarActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName name) { isChatServiceBound = false;
+        }
+    };
+
+    /**
+     * Connection to the external wifiDirectService-process.
+     */
+    private ServiceConnection wifiDirectConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            WifiDirectService.InstanceBinder localBinder = (WifiDirectService.InstanceBinder) service;
+            wifiDirectService = localBinder.getService();
+            isWifiDirectServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isWifiDirectServiceBound = false;
         }
     };
 

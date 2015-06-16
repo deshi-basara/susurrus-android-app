@@ -34,6 +34,7 @@ public class CreateActivity extends ActionBarActivity {
      * Networking
      */
     private WifiDirectService wifiDirectService;
+    private Intent wifiServiceIntent;
     private boolean isWifiDirectServiceBound;
 
     /**
@@ -72,9 +73,11 @@ public class CreateActivity extends ActionBarActivity {
         //registerWifiRoom();
 
         // start and bound the wifiDirectService
-        Intent intentService = new Intent(this, WifiDirectService.class);
-        startService(intentService);
-        bindService(intentService, serviceConnection, Context.BIND_AUTO_CREATE);
+        this.wifiServiceIntent = new Intent(this, WifiDirectService.class);
+        startService(this.wifiServiceIntent);
+        bindService(this.wifiServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
+        Log.d(LOG_TAG, "CreateActivity created.");
     }
 
     @Override
@@ -107,6 +110,23 @@ public class CreateActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    /**
+     * Is executed, when the Activity is destroyed
+     */
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // destroy running AsyncTasks (needed for lower Android-versions)
+        if(this.wifiServiceIntent != null && this.isWifiDirectServiceBound) {
+            Log.d(LOG_TAG, "Unbinding: wifiDirectService [ServiceConnection]");
+            unbindService(serviceConnection);
+        }
+
+        Log.d(LOG_TAG, "CreateActivity destroyed.");
+    }
+
 
     private void setView() {
         // get default layout
@@ -191,7 +211,7 @@ public class CreateActivity extends ActionBarActivity {
         else {
             // get the creator's username
             SharedPreferences settings = getSharedPreferences(Settings.PREF_ID, 0);
-            String userName = settings.getString(Settings.PREF_USER_NAME, "Anonymous");
+            String userName = settings.getString(Settings.PREF_USER_NAME, "Glenn Greenwald");
 
             // everything valid, create a new RoomModel
             //@todo real "ROOM_IMAGE"
@@ -343,6 +363,7 @@ public class CreateActivity extends ActionBarActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             WifiDirectService.InstanceBinder localBinder = (WifiDirectService.InstanceBinder) service;
             wifiDirectService = localBinder.getService();
+            isWifiDirectServiceBound = true;
         }
 
         @Override
