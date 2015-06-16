@@ -1,5 +1,9 @@
 package rocks.susurrus.susurrus.services;
 
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -20,9 +24,11 @@ import java.util.Map;
 
 import rocks.susurrus.susurrus.CreateActivity;
 import rocks.susurrus.susurrus.MainActivity;
+import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
+import rocks.susurrus.susurrus.receivers.ShutdownReceiver;
 
 /**
  * Created by simon on 04.06.15.
@@ -42,6 +48,7 @@ public class WifiDirectService extends Service {
     public static final int GROUP_CREATED = 3;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
+    private final int NOTIFICATION_ID = 001;
 
     /**
      * Binder
@@ -61,6 +68,7 @@ public class WifiDirectService extends Service {
     private WifiP2pManager.Channel wifiDirectChannel;
     private WifiDirectBroadcastReceiver wifiDirectReceiver;
     private boolean isWifiDirectReceiverRegistered = false;
+    private WifiP2pDnsSdServiceInfo roomInfo;
 
     /**
      * Ui
@@ -102,8 +110,16 @@ public class WifiDirectService extends Service {
      * Is executed the first time the Service is started.
      */
     public void onCreate() {
+
         // setup all needed networking interfaces
         this.initiateNetworking();
+
+        // setup
+
+        // setup status icon
+        this.showNotificationIcon();
+
+        Log.d(LOG_TAG, "wifiDirectService created.");
     }
 
     @Override
@@ -118,6 +134,8 @@ public class WifiDirectService extends Service {
             // unregister WifiP2P-broadcast listener
             unregisterReceiver(this.wifiDirectReceiver);
         }
+
+        Log.d(LOG_TAG, "wifiDirectService destroyed.");
     }
 
     @Override
@@ -128,6 +146,49 @@ public class WifiDirectService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         return Service.START_NOT_STICKY;
+    }
+
+    /**
+     * Opens a status-indicator-notification when the service is started.
+     */
+    private void showNotificationIcon() {
+
+        // set MainActivity as notification action, which redirects to the last opened Activity
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        notificationIntent.setAction(Intent.ACTION_MAIN);
+        PendingIntent resultPendingIntent =
+                PendingIntent.getActivity(
+                        this,
+                        0,
+                        notificationIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+
+        // set a "closing-broadcast" as notification close action, which signals the broadcast-
+        // listener to close the whole app
+        Intent closingIntent = new Intent(this, ShutdownReceiver.class);
+        PendingIntent closePendingIntent =
+                PendingIntent.getBroadcast(
+                        this,
+                        0,
+                        closingIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+
+        // set notification content and open it
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Notification notification  = new Notification.Builder(this)
+                .setContentTitle(getString(R.string.notify_running_title))
+                .setContentText(getString(R.string.notify_running_content))
+                .setSmallIcon(R.drawable.entering_heaven_alive_24)
+                .addAction(R.drawable.cancel_24, getString(R.string.notify_running_stop),
+                        closePendingIntent)
+                .setContentIntent(resultPendingIntent)
+                .setOngoing(true)
+                .build();
+        notificationManager.notify(this.NOTIFICATION_ID, notification);
+
     }
 
     /**
@@ -151,8 +212,6 @@ public class WifiDirectService extends Service {
 
         // search for available rooms
         //this.wifiDirectService.discoverLocalServices();
-
-        Log.d(this.LOG_TAG, "Networking initiated.");
     }
 
     public void setupWifiDirectReceiver() {
@@ -207,8 +266,6 @@ public class WifiDirectService extends Service {
      * Setups an own local "susurrus"-service (which represents a chat room).
      */
     public void setupLocalService(final CreateActivity feedbackActivity, final RoomModel roomModel) {
-        Log.d(LOG_TAG, "Registering new room ...");
-
         feedbackActivity.registerWifiDialogUpdate(GROUP_CREATING);
 
         wifiDirectManager.createGroup(this.wifiDirectChannel, createGroupListener);
@@ -218,13 +275,14 @@ public class WifiDirectService extends Service {
         // Service information. Pass it an instance name, service type
         // _protocol._transportlayer, and the map containing
         // information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo roomInfo =
+        this.roomInfo =
                 WifiP2pDnsSdServiceInfo.newInstance(SERVICE_NAME, SERVICE_TYPE, roomModel.toHashMap());
 
         // Add the local service, sending the service info, network channel,
         // and listener that will be used to indicate success or failure of
         // the request.
-        wifiDirectManager.addLocalService(wifiDirectChannel, roomInfo, new WifiP2pManager.ActionListener() {
+        wifiDirectManager.addLocalService(wifiDirectChannel, this.roomInfo,
+                new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 Log.d(LOG_TAG, "... service created.");
@@ -247,6 +305,26 @@ public class WifiDirectService extends Service {
                 }
 
                 feedbackActivity.registerWifiDialogUpdate(GROUP_ERROR);
+            }
+        });
+    }
+
+    /**
+     * Removes a previously created "susurrus"-service, for example when a chat-room is closed
+     * by the MasterNode.
+     */
+    public void removeLocalService() {
+        wifiDirectManager.removeLocalService(wifiDirectChannel, this.roomInfo,
+                new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.d(LOG_TAG, "Service removed.");
+            }
+
+            @Override
+            public void onFailure(int errorCode) {
+
+                Log.d(LOG_TAG, "Service remove error: " + errorCode);
             }
         });
     }
@@ -285,7 +363,7 @@ public class WifiDirectService extends Service {
      * Starts the manual discovery of local "susurrus"-services.
      */
     public void discoverLocalServices() {
-        Log.d(LOG_TAG, "Start discovering rooms ...");
+        Log.d(LOG_TAG, "Discover rooms ...");
 
         // make the request
         wifiDirectManager.discoverServices(wifiDirectChannel, new WifiP2pManager.ActionListener() {
@@ -398,6 +476,7 @@ public class WifiDirectService extends Service {
 
         @Override
         public void onFailure(int reason) {
+            // The reason for failure could be one of P2P_UNSUPPORTED, ERROR or BUSY
             Log.d(LOG_TAG, "group error: " + reason);
         }
     };
