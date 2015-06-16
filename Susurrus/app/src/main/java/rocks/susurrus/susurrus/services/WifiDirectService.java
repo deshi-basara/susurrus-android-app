@@ -46,9 +46,9 @@ public class WifiDirectService extends Service {
     public static final int GROUP_CREATING = 1;
     public static final int GROUP_ERROR = 2;
     public static final int GROUP_CREATED = 3;
+    public static final int NOTIFICATION_ID = 001;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
-    private final int NOTIFICATION_ID = 001;
 
     /**
      * Binder
@@ -68,6 +68,8 @@ public class WifiDirectService extends Service {
     private WifiP2pManager.Channel wifiDirectChannel;
     private WifiDirectBroadcastReceiver wifiDirectReceiver;
     private boolean isWifiDirectReceiverRegistered = false;
+    private ShutdownReceiver shutdownReceiver;
+    private boolean isShutdownReceiverRegistered = false;
     private WifiP2pDnsSdServiceInfo roomInfo;
 
     /**
@@ -114,6 +116,9 @@ public class WifiDirectService extends Service {
         // setup all needed networking interfaces
         this.initiateNetworking();
 
+        // setup shutdown broadcast-listener
+        this.setupShutdownReceiver();
+
         // setup status icon
         this.showNotificationIcon();
 
@@ -127,10 +132,16 @@ public class WifiDirectService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
+        // unregister WifiP2P-broadcast listener
         if(this.isWifiDirectReceiverRegistered) {
             Log.d(LOG_TAG, "Unregister: wifiDirectReceiver [Broadcast-Receiver]");
-            // unregister WifiP2P-broadcast listener
             unregisterReceiver(this.wifiDirectReceiver);
+        }
+
+        // unregister Shutdown-broadcast listener
+        if(this.isShutdownReceiverRegistered) {
+            Log.d(LOG_TAG, "Unregister: ShutdownReceiver [Broadcast-Receiver]");
+            unregisterReceiver(this.shutdownReceiver);
         }
 
         Log.d(LOG_TAG, "wifiDirectService destroyed.");
@@ -165,7 +176,7 @@ public class WifiDirectService extends Service {
 
         // set a "closing-broadcast" as notification close action, which signals the broadcast-
         // listener to close the whole app
-        Intent closingIntent = new Intent(this, ShutdownReceiver.class);
+        Intent closingIntent = new Intent(ShutdownReceiver.SHUTDOWN_BROADCAST);
         PendingIntent closePendingIntent =
                 PendingIntent.getBroadcast(
                         this,
@@ -226,7 +237,19 @@ public class WifiDirectService extends Service {
 
             this.isWifiDirectReceiverRegistered = true;
         }
+    }
 
+    public void setupShutdownReceiver() {
+
+        if(!this.isShutdownReceiverRegistered) {
+            IntentFilter shutdownIntentFilter = new IntentFilter();
+            shutdownIntentFilter.addAction(ShutdownReceiver.SHUTDOWN_BROADCAST);
+
+            this.shutdownReceiver = new ShutdownReceiver((NotificationManager)
+                    getSystemService(Context.NOTIFICATION_SERVICE));
+
+            registerReceiver(this.shutdownReceiver, shutdownIntentFilter);
+        }
     }
 
     /**
