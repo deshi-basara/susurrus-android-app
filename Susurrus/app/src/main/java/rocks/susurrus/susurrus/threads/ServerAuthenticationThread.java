@@ -116,11 +116,11 @@ public class ServerAuthenticationThread extends Thread {
                 try {
                     // make sure you close the socket upon exiting
                     authSocket.close();
+
+                    Log.d(LOG_TAG, "Authentication-Socket closed.");
                 } catch(IOException e) {
                     e.printStackTrace();
                 }
-
-                Log.d(LOG_TAG, "Authentication-Socket closed.");
             }
         }
 
@@ -163,11 +163,11 @@ public class ServerAuthenticationThread extends Thread {
             try {
                 // make sure you close the socket upon exiting
                 authSocket.close();
+
+                Log.d(LOG_TAG, "Authentication-Socket closed.");
             } catch(IOException e) {
                 e.printStackTrace();
             }
-
-            Log.d(LOG_TAG, "Authentication-Socket closed.");
         }
     }
 }

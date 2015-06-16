@@ -84,11 +84,11 @@ public class ServerReceiveThread extends Thread {
                 // close a potentially opened socket connection on cancellation
                 try {
                     socket.close();
+
+                    Log.d(LOG_TAG, "Chat-Socket closed.");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-                Log.d(LOG_TAG, "Chat-Socket closed.");
             }
         }
 
@@ -116,11 +116,11 @@ public class ServerReceiveThread extends Thread {
             try {
                 // make sure you close the socket upon exiting
                 this.socket.close();
+
+                Log.d(LOG_TAG, "Chat-Socket closed.");
             } catch(IOException e) {
                 e.printStackTrace();
             }
-
-            Log.d(LOG_TAG, "Chat-Socket closed.");
         }
     }
 }
