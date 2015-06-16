@@ -29,11 +29,22 @@
             android:nestedScrollingEnabled="true"
             />
 
-        <ImageView
+        <!--<ImageView
             android:id="@+id/single_message_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/multiple_inputs_24"
+            android:layout_marginRight="5dp"
+            android:layout_centerVertical="true"
+            android:layout_alignRight="@+id/single_message_content"
+            android:layout_alignEnd="@+id/single_message_content"
+            />-->
+
+        <ImageView
+            android:id="@+id/single_message_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/checkmark_24"
             android:layout_marginRight="5dp"
             android:layout_centerVertical="true"
             android:layout_alignRight="@+id/single_message_content"
