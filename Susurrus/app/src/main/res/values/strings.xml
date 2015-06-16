@@ -19,11 +19,15 @@
         zu scannen.
     </string>
     <string name="main_warn_wifi_title">Bereits verbunden</string>
-    <string name="main_warn_wifi_content">
+    <!--<string name="main_warn_wifi_content">
         Du bist leider schon mit einem Wlan-Access-Point verbunden. Soll Susurrus für dich die
         Verbindung trennen?
+    </string>-->
+    <string name="main_warn_wifi_content">
+        Du bist leider schon mit einem Wlan-Access-Point verbunden. Damit Susurrus funktioniert
+        muss du die Verbindung unterbrechen.
     </string>
-    <string name="main_warn_wifi_proceed">Trennen</string>
+    <string name="main_warn_wifi_proceed">Verstanden</string>
     <string name="main_warn_wifi_cancel">Abbrechen</string>
 
     <!-- Main Activity Room Item -->

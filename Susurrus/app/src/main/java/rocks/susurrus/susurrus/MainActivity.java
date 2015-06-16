@@ -220,7 +220,7 @@ public class MainActivity extends ActionBarActivity {
                 .title(R.string.main_warn_wifi_title)
                 .content(R.string.main_warn_wifi_content)
                 .positiveText(R.string.main_warn_wifi_proceed)
-                .negativeText(R.string.main_warn_wifi_cancel)
+                //.negativeText(R.string.main_warn_wifi_cancel)
                 .callback(new MaterialDialog.ButtonCallback() {
                     @Override
                     public void onPositive(MaterialDialog dialog) {
@@ -489,6 +489,7 @@ public class MainActivity extends ActionBarActivity {
             // user already connected?
             if(wifiDirectService.isAlreadyConnected()) {
                 showAccessPointWarning();
+                //@todo implement global wifi warning
             }
         }
 
