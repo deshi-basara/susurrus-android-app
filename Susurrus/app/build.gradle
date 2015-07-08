@@ -38,8 +38,6 @@ dependencies {
     compile 'com.wrapp.floatlabelededittext:library:0.0.6'
     compile 'com.github.andkulikov:transitions-everywhere:1.4.0'
     compile 'com.daimajia.numberprogressbar:library:1.2@aar'
-    compile('com.scottyab:secure-preferences-lib:0.1.0') {
-        compile 'com.scottyab:aes-crypto:0.0.2-SNAPSHOT'
-    }
+    compile 'com.scottyab:secure-preferences-lib:0.1.1'
     compile 'com.android.support:support-v4:22.2.0'
 }
