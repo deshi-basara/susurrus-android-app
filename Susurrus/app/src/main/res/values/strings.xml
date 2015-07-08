@@ -9,6 +9,12 @@
     <string name="action_discover">Scannen</string>
     <string name="action_room_done">Fertig</string>
     <string name="action_settings_done">Fertig</string>
+    <string name="action_send_file">Datei schicken</string>
+    <string name="action_send_take_photo">Kamera</string>
+    <string name="action_send_pick_photo">Foto</string>
+    <string name="action_send_take_audio">Audio</string>
+    <string name="action_send_take_video">Video</string>
+
 
     <!--
         Main Activity
@@ -106,7 +112,7 @@
     </string>
     <string name="chat_warn_exit_proceed">Weiter</string>
     <string name="chat_warn_exit_cancel">Abbrechen</string>
-
+    <string name="chat_upload_notification">Neuer Upload von</string>
 
     <!--
         Settings

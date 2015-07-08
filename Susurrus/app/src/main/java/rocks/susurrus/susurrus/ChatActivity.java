@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
@@ -29,6 +30,11 @@ import android.widget.ListView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+
 import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
 import rocks.susurrus.susurrus.chat.models.MessageModel;
 import rocks.susurrus.susurrus.models.RoomModel;
@@ -38,6 +44,7 @@ import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.tasks.ClientDistributionTask;
 import rocks.susurrus.susurrus.tasks.ServerDistributionTask;
 import rocks.susurrus.susurrus.utils.Settings;
+import rocks.susurrus.susurrus.utils.Uploads;
 
 
 public class ChatActivity extends ActionBarActivity {
@@ -141,10 +148,6 @@ public class ChatActivity extends ActionBarActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_chat, menu);
 
-        /*menu.findItem(R.id.action_search).setIcon(
-                new IconDrawable(this, Iconify.IconValue.fa_share)
-                        .colorRes(R.color.abc_primary_text_disable_only_material_dark)
-                        .actionBarSize());*/
         return true;
     }
 
@@ -172,6 +175,19 @@ public class ChatActivity extends ActionBarActivity {
 
             return true;
         }
+        // take & send photo
+        else if(id == R.id.send_take_photo) {
+            //@todo implement
+        }
+        // pick & send photo
+        else if(id == R.id.send_pick_photo) {
+
+            // open a new intent for picking a file
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            startActivityForResult(intent, MessageModel.IMAGE_MESSAGE);
+
+        }
         // back button
         else if(id == android.R.id.home) {
             showExitWarning();
@@ -180,6 +196,29 @@ public class ChatActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //String Fpath = data.getDataString();
+
+        // what data did we receive as a result?
+        switch(requestCode) {
+            case MessageModel.IMAGE_MESSAGE:
+                // Image
+                if(data.getData() != null) {
+                    ArrayList results = Uploads.UriToStream(getContentResolver(), data.getData());
+                    MessageModel message = getMessageFromFile(MessageModel.IMAGE_MESSAGE, results);
+                    distributeMessage(message);
+                }
+
+                break;
+        }
+
+
+        Log.d(LOG_TAG, "Result-Code: " + resultCode);
+
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -338,7 +377,30 @@ public class ChatActivity extends ActionBarActivity {
         String messageText = messageInputText.getText().toString();
         messageInputText.setText("");
 
-        MessageModel newMessage = new MessageModel(true, this.userName, messageText);
+        MessageModel newMessage = new MessageModel(
+                true,
+                this.userName,
+                MessageModel.TEXT_MESSAGE
+        );
+        newMessage.setMessage(messageText);
+
+        return newMessage;
+    }
+
+    /**
+     * Returns a new MessageModel that is enriched with a fileInput-stream and its length.
+     * @return MessageModel
+     */
+    private MessageModel getMessageFromFile(int _messageType, ArrayList streamData) {
+        MessageModel newMessage = new MessageModel(
+                true,
+                this.userName,
+                _messageType
+        );
+        newMessage.setStream((byte[]) streamData.get(0), (int) streamData.get(1));
+
+        Log.d(LOG_TAG, "streamLength: " + streamData.get(1));
+
         return newMessage;
     }
 
@@ -381,9 +443,11 @@ public class ChatActivity extends ActionBarActivity {
                 Log.e(LOG_TAG, "DAVOR SCHON LEER");
             }
 
-            new ClientDistributionTask(ChatActivity.this, wifiDirectReceiver.getMasterAddress(),
-                    this.messageListView)
-                        .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+            new ClientDistributionTask(
+                    ChatActivity.this,
+                    wifiDirectReceiver.getMasterAddress(),
+                    this.messageListView
+            ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
         }
     }
 
@@ -430,6 +494,8 @@ public class ChatActivity extends ActionBarActivity {
             masterService.setChatHandler(chatHandler);
             masterService.startChatThread();
             masterService.startAuthThread();
+            masterService.startNotificationIcon();
+
             isChatServiceBound = true;
         }
 
@@ -449,6 +515,7 @@ public class ChatActivity extends ActionBarActivity {
             masterService = localBinder.getService();
             masterService.setChatHandler(chatHandler);
             masterService.startChatThread();
+            masterService.startNotificationIcon();
 
             isChatServiceBound = true;
         }

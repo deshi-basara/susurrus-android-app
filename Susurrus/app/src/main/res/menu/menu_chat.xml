@@ -4,10 +4,36 @@
     tools:context="rocks.susurrus.susurrus.ChatActivity">
 
     <!-- Action buttons -->
-    <item android:id="@+id/action_notify_on"
-        android:icon="@drawable/speaker_48"
+    <item android:id="@+id/action_send"
+        android:icon="@drawable/upload_48"
         android:title="Notification on"
-        app:showAsAction="always">
+        app:showAsAction="always"
+        >
+
+        <!-- Menu buttons for action_send -->
+        <menu>
+            <item
+                android:id="@+id/send_take_photo"
+                android:icon="@drawable/compact_camera_48"
+                android:title="@string/action_send_take_photo"
+                />
+            <item
+                android:id="@+id/send_pick_photo"
+                android:icon="@drawable/image_file_48"
+                android:title="@string/action_send_pick_photo"
+                />
+            <item
+                android:id="@+id/send_take_audio"
+                android:icon="@drawable/audio_file_48"
+                android:title="@string/action_send_take_audio"
+                />
+            <item
+                android:id="@+id/send_take_video"
+                android:icon="@drawable/video_file_48"
+                android:title="@string/action_send_take_video"
+                />
+        </menu>
+
     </item>
 
     <item android:id="@+id/action_list"
