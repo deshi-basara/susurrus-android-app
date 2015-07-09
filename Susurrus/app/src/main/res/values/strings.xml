@@ -9,6 +9,7 @@
     <string name="action_discover">Scannen</string>
     <string name="action_room_done">Fertig</string>
     <string name="action_settings_done">Fertig</string>
+    <string name="action_password_done">Entschlüsseln</string>
     <string name="action_send_file">Datei schicken</string>
     <string name="action_send_take_photo">Kamera</string>
     <string name="action_send_pick_photo">Foto</string>
@@ -115,7 +116,7 @@
     <string name="chat_upload_notification">Neuer Upload von</string>
 
     <!--
-        Settings
+        Settings Activity
     -->
     <string name="settings_activity">Einstellungen</string>
     <string name="settings_user_name_hint">Benutzername</string>
@@ -124,6 +125,18 @@
     <string name="settings_generate_key_content">Einen Moment Geduld ...</string>
     <string name="settings_generate_key_done">Speichere neuen Schlüssel ...</string>
     <string name="settings_change_password">Neues Applikations-Password festlegen</string>
+
+    <!--
+        Password Activity
+    -->
+    <string name="password_activity">Susurrus</string>
+    <string name="password_input_hint">Passwort</string>
+    <string name="password_input_error">Das eingegebene Passwort ist falsch!</string>
+    <string name="password_input_desc">
+        Deine persönlichen Daten und Schlüssel sind mit einem Passwort geschützt. Um Susurrus nutzen
+        zu können, musst du zuerst dein geheimes Passwort eingeben.
+    </string>
+    <string name="password_dialog_content">Entsperre vertrauliche Daten ...</string>
 
     <!--
         Notifications

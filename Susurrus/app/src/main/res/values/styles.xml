@@ -5,4 +5,11 @@
         <!-- Customize your theme here. -->
     </style>
 
+
+
+    <style name="floatlabelededittext">
+        <item name="android:textColor">@color/susurrus_white</item>
+        <item name="android:textColorHint">@color/susurrus_white</item>
+    </style>
+
 </resources>

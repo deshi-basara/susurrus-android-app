@@ -2,10 +2,7 @@ package rocks.susurrus.susurrus.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.securepreferences.SecurePreferences;
-
-import java.security.GeneralSecurityException;
 
 /**
  * Created by simon on 14.06.15.
@@ -23,6 +20,12 @@ public class Settings {
     public static final String PREF_PRIVATE_KEY = "SUS_PUB_PRIVATE";
 
     /**
+     * Exceptions
+     */
+    private static final String NO_PASSWORD_EXCEPTION = "No password entered";
+    private static final String INVALID_PASSWORD_EXCEPTION = "Entered password is not valid";
+
+    /**
      * Singleton
      */
     private static Settings singleInstance;
@@ -30,30 +33,52 @@ public class Settings {
     /**
      * Data
      */
-    Context context;
-    SharedPreferences settings;
+    private SecurePreferences settings;
+    private String settingsPassword;
+
+    /**
+     * Constructor.
+     *
+     * @param settings
+     * @param password
+     */
+    public Settings(SecurePreferences settings, String password) {
+        this.settings = settings;
+        this.settingsPassword = password;
+    }
 
     /**
      * Maintains a static reference to the lone singleton instance and returns the reference from.
      * @return Settings instance
      */
-    public static Settings getInstance() {
+    public static Settings getInstance() throws RuntimeException {
         // is there already an instance of the class?
         if(singleInstance == null) {
-            // no instance, create one
-            singleInstance = new Settings();
+            return null;
         }
 
         return singleInstance;
     }
 
-    public void setContext(Context context) {
-        this.context = context;
-    }
+    /**
+     * Checks if the handed password is valid for unlocking the encrypted settings.
+     * @param _context Application context.
+     * @param _password Entered password.
+     * @return True, if correct.
+     */
+    public static boolean unlockSettings(Context _context, String _password) {
 
-    public boolean unlock(String password) {
-        this.settings = new SecurePreferences(this.context, password, null);
+        // try to open locked settings and ask for a value
+        SecurePreferences settings = new SecurePreferences(_context, _password, null);
+        if(settings.getString(Settings.PREF_USER_NAME, "default") == null) {
+            // value not available, password has to be invalid
+            return false;
+        }
+        else {
+            // valid password, create an instance
+            singleInstance = new Settings(settings, _password);
 
-        return true;
+            return true;
+        }
     }
 }
