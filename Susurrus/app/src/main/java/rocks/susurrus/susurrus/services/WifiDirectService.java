@@ -49,7 +49,6 @@ public class WifiDirectService extends Service {
     public static final int GROUP_CREATING = 1;
     public static final int GROUP_ERROR = 2;
     public static final int GROUP_CREATED = 3;
-    public static final int NOTIFICATION_ID = 001;
     private final String SERVICE_NAME = "_susurrus";
     private final String SERVICE_TYPE = "_presence._tcp";
 
@@ -122,9 +121,6 @@ public class WifiDirectService extends Service {
         // setup shutdown broadcast-listener
         this.setupShutdownReceiver();
 
-        // setup status icon
-        this.showNotificationIcon();
-
         Log.d(LOG_TAG, "wifiDirectService created.");
     }
 
@@ -158,49 +154,6 @@ public class WifiDirectService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         return Service.START_NOT_STICKY;
-    }
-
-    /**
-     * Opens a status-indicator-notification when the service is started.
-     */
-    private void showNotificationIcon() {
-
-        // set MainActivity as notification action, which redirects to the last opened Activity
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        notificationIntent.setAction(Intent.ACTION_MAIN);
-        PendingIntent resultPendingIntent =
-                PendingIntent.getActivity(
-                        this,
-                        0,
-                        notificationIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-
-        // set a "closing-broadcast" as notification close action, which signals the broadcast-
-        // listener to close the whole app
-        Intent closingIntent = new Intent(ShutdownReceiver.SHUTDOWN_BROADCAST);
-        PendingIntent closePendingIntent =
-                PendingIntent.getBroadcast(
-                        this,
-                        0,
-                        closingIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-
-        // set notification content and open it
-        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Notification notification  = new Notification.Builder(this)
-                .setContentTitle(getString(R.string.notify_running_title))
-                .setContentText(getString(R.string.notify_running_content))
-                .setSmallIcon(R.drawable.entering_heaven_alive_24)
-                .addAction(R.drawable.cancel_24, getString(R.string.notify_running_stop),
-                        closePendingIntent)
-                .setContentIntent(resultPendingIntent)
-                .setOngoing(true)
-                .build();
-        notificationManager.notify(this.NOTIFICATION_ID, notification);
-
     }
 
     /**

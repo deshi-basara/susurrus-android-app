@@ -129,7 +129,7 @@
         Notifications
     -->
     <string name="notify_running_title">Susurrus</string>
-    <string name="notify_running_content">Susurrus läuft im Hintergrund</string>
+    <string name="notify_running_content">Chat-Raum im Hintergrund geöffnet</string>
     <string name="notify_running_stop">Beenden</string>
 
 
