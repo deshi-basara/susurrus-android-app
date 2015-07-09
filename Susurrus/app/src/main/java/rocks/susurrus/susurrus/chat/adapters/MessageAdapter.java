@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -110,14 +111,24 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
             TextView usernameText = (TextView) row.findViewById(R.id.send_notification_username);
             usernameText.setText(chatMessage.getOwnerName());
 
-            // set preview image
+            // set preview image & click listener
             ImageView previewImage = (ImageView) row.findViewById(R.id.send_notification_img);
+            RelativeLayout uploadContainer = (RelativeLayout)
+                    row.findViewById(R.id.send_notification_container);
             switch(chatMessage.getMessageType()) {
                 case MessageModel.AUDIO_MESSAGE:
                     previewImage.setImageResource(R.drawable.audio_file_48);
+
                     break;
                 case MessageModel.IMAGE_MESSAGE:
                     previewImage.setImageResource(R.drawable.image_file_48);
+
+                    uploadContainer.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Log.d(LOG_TAG, "CLICK");
+                        }
+                    });
                     break;
                 case MessageModel.VIDEO_MESSAGE:
                     previewImage.setImageResource(R.drawable.video_file_48);

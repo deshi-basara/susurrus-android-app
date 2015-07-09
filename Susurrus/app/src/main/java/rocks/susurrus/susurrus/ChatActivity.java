@@ -209,6 +209,7 @@ public class ChatActivity extends ActionBarActivity {
                 if(data.getData() != null) {
                     ArrayList results = Uploads.UriToStream(getContentResolver(), data.getData());
                     MessageModel message = getMessageFromFile(MessageModel.IMAGE_MESSAGE, results);
+                    addMessage(message);
                     distributeMessage(message);
                 }
 

@@ -4,14 +4,16 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="15dp">
+    android:paddingBottom="20dp"
+    android:paddingTop="20dp"
+    >
 
     <RelativeLayout
         android:id="@+id/send_notification_container"
         android:layout_width="wrap_content"
         android:layout_height="25dp"
         android:layout_gravity="center_horizontal"
-        android:background="@color/susurrus_white"
+        android:background="@color/susurrus_purple"
         android:paddingLeft="10dp"
         android:paddingRight="15dp"
         >
@@ -33,7 +35,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/susurrus_white"
             android:text="@string/chat_upload_notification"
+            android:textSize="12dp"
             android:layout_centerVertical="true"
             android:layout_marginRight="4dp"
             />
@@ -46,7 +50,8 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="Benutzer"
             android:textStyle="bold"
-            android:textColor="@color/susurrus_blue"
+            android:textSize="12dp"
+            android:textColor="@color/susurrus_white"
             android:layout_centerVertical="true"
             />
 
