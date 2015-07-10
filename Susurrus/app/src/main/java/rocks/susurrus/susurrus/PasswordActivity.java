@@ -33,6 +33,13 @@ public class PasswordActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_password);
 
+        // check if the user started the app for the first time
+        if(Settings.isFirstRun(this)) {
+            // first start, app needs init
+            Intent introIntent = new Intent(this, IntroActivity.class);
+            startActivity(introIntent);
+        }
+
         setView();
     }
 

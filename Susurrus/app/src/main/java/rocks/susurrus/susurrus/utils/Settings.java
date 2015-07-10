@@ -19,11 +19,13 @@ public class Settings {
     /**
      * Constants
      */
+    public static final String PREF_PLAIN_ID = "SUS_PREFS_PLAIN"; // unencrypted settings
     public static final String PREF_ID = "SUS_PREFS";
     public static final String PREF_USER_NAME = "SUS_USER_NAME";
     public static final String PREF_IMAGE = "SUS_USER_IMAGE";
     public static final String PREF_PUB_KEY = "SUS_PUB_KEY";
     public static final String PREF_PRIVATE_KEY = "SUS_PUB_PRIVATE";
+    public static final String PREF_PLAIN_STARTED = "SUS_PLAIN_STARTED";
 
     /**
      * Exceptions
@@ -66,6 +68,24 @@ public class Settings {
         }
 
         return singleInstance;
+    }
+
+    /**
+     * Checks weather the app was started for the first time (and needs initialization).
+     * @param _context Application context.
+     * @return True, if first time.
+     */
+    public static boolean isFirstRun(Context _context) {
+        // get unencrypted settings and check if PREF_PLAIN_STARTED was initialized yet
+        SharedPreferences plainPrefs = _context.getSharedPreferences(PREF_PLAIN_ID,
+                Context.MODE_PRIVATE);
+
+        if(plainPrefs.getBoolean(PREF_PLAIN_STARTED, true)) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
