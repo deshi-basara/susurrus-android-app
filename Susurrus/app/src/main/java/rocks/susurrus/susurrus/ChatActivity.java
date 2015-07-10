@@ -35,8 +35,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import rocks.susurrus.susurrus.chat.adapters.MessageAdapter;
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.adapters.MessageAdapter;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
 import rocks.susurrus.susurrus.services.MasterService;
@@ -147,7 +147,6 @@ public class ChatActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_chat, menu);
-
         return true;
     }
 

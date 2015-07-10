@@ -1,13 +1,11 @@
 package rocks.susurrus.susurrus;
 
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,7 +14,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
 import android.util.Log;
@@ -31,29 +28,26 @@ import android.widget.RelativeLayout;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.skyfishjy.library.RippleBackground;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import javax.crypto.SealedObject;
+
 import rocks.susurrus.susurrus.adapters.RoomAdapter;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.models.AuthModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.network.WifiDirectBroadcastReceiver;
-import rocks.susurrus.susurrus.network.WifiDisconnector;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.services.WifiDirectService.InstanceBinder;
 import rocks.susurrus.susurrus.tasks.ClientAuthenticationTask;
+import rocks.susurrus.susurrus.utils.Crypto;
+import rocks.susurrus.susurrus.utils.Settings;
 
 public class MainActivity extends ActionBarActivity {
     private static final String LOG_TAG = "MainActivity";
 
     private boolean firstStart = false;
-
-    /**
-     * Networking
-     */
-    // intent-filter for reacting on network changes
-    private final IntentFilter wifiIntentFilter = new IntentFilter();
-    private WifiP2pManager wifiDirectManager;
-    private WifiP2pManager.Channel wifiChannel;
-    private WifiDirectBroadcastReceiver wifiReceiver;
-    //private WifiDirectLocalService wifiDirectService;
 
     /**
      * Services/Threads/Handler
@@ -87,6 +81,45 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        MessageModel newMessage = new MessageModel(false, "OWNER", 1);
+
+
+        PublicKey pubTest = Settings.getInstance().getPublicKey();
+        PrivateKey privTest = Settings.getInstance().getPrivateKey();
+
+        Log.d(LOG_TAG, "plain: " + newMessage.getOwnerName());
+
+        SealedObject encrypted = Crypto.encryptBytes(newMessage, pubTest);
+        Log.d(LOG_TAG, "Encrypted SealedObject is: " + encrypted);
+
+        Object decrypted = Crypto.decryptBytes(encrypted, privTest);
+        Log.d(LOG_TAG, "Decrypted Object is: " + decrypted);
+
+        MessageModel oldMessage = (MessageModel) decrypted;
+        Log.d(LOG_TAG, "Values before/after: " + oldMessage.getOwnerName() + "==" + "OWNER");
+
+        // is the activity started for shutting down the app?
+        /*if(getIntent().getBooleanExtra("EXIT", false)) {
+            Log.d(LOG_TAG, "Closing app ...");
+
+            // kill notification
+            NotificationManager notificationManager = (NotificationManager)
+                    getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(MasterService.NOTIFICATION_ID);
+
+            // kill activity and app
+            finish();
+            //System.exit(1);
+        }
+
+        // DEBUGGING
+        if(false) {
+            Intent chatIntent = new Intent(this, ChatActivity.class);
+            chatIntent.putExtra("ROOM_MODEL", new RoomModel("OWNER", "RAUM", "DATEN", "ROOM_IMAGE", false));
+            startActivity(chatIntent);
+        }*/
 
         setupFirstStart();
         setupView();
@@ -224,14 +257,14 @@ public class MainActivity extends ActionBarActivity {
                 .callback(new MaterialDialog.ButtonCallback() {
                     @Override
                     public void onPositive(MaterialDialog dialog) {
-                        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                        /*WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                         Log.d(LOG_TAG, "Forcing disconnect");
 
                         wifiManager.disconnect();
 
                         WifiDisconnector disconnector = new WifiDisconnector(wifiManager);
                         registerReceiver(disconnector, new IntentFilter(WifiManager.
-                                SUPPLICANT_STATE_CHANGED_ACTION));
+                                SUPPLICANT_STATE_CHANGED_ACTION));*/
                     }
                 })
                 .show();
@@ -458,6 +491,9 @@ public class MainActivity extends ActionBarActivity {
     public void startAuthentication() {
         Log.d(LOG_TAG, "startAuthentication");
 
+        // get the publicKey of the user
+
+
         // create a new authentication model
         AuthModel authRequest = new AuthModel(this.clickedRoom.getRoomPassword(), "public");
         //@todo insert real publicKey
@@ -488,7 +524,7 @@ public class MainActivity extends ActionBarActivity {
 
             // user already connected?
             if(wifiDirectService.isAlreadyConnected()) {
-                showAccessPointWarning();
+                //showAccessPointWarning();
                 //@todo implement global wifi warning
             }
         }

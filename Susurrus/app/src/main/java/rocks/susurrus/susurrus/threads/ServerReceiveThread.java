@@ -11,7 +11,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 
 /**

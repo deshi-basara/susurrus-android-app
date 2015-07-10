@@ -2,7 +2,12 @@ package rocks.susurrus.susurrus.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
+
 import com.securepreferences.SecurePreferences;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 /**
  * Created by simon on 14.06.15.
@@ -80,5 +85,29 @@ public class Settings {
 
             return true;
         }
+    }
+
+    public PublicKey getPublicKey() throws RuntimeException {
+        String publicKeyString = this.settings.getString(Settings.PREF_PUB_KEY, "empty");
+        if(publicKeyString.equals("empty")) {
+            throw new RuntimeException("No PublicKey available");
+        }
+
+        Log.d(LOG_TAG, "publicKey: " + publicKeyString);
+        PublicKey publicKey = Crypto.publicStringToKey(publicKeyString);
+
+        return publicKey;
+    }
+
+    public PrivateKey getPrivateKey() throws RuntimeException {
+        String privateKeyString = this.settings.getString(Settings.PREF_PRIVATE_KEY, "empty");
+        if(privateKeyString.equals("empty")) {
+            throw new RuntimeException("No PrivateKey available");
+        }
+
+        Log.d(LOG_TAG, "privateKey: " + privateKeyString);
+        PrivateKey privateKey = Crypto.privateStringToKey(privateKeyString);
+
+        return privateKey;
     }
 }

@@ -1,4 +1,4 @@
-package rocks.susurrus.susurrus.chat.adapters;
+package rocks.susurrus.susurrus.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,7 +19,7 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import rocks.susurrus.susurrus.R;
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.MessageModel;
 
 /**
  * Adapter between messageModel and messageView.

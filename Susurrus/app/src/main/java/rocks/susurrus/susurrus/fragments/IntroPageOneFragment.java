@@ -37,7 +37,7 @@ public class IntroPageOneFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         setLayout(view);
-        startAnimation();
+        //startAnimation();
     }
 
 

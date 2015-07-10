@@ -12,7 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import rocks.susurrus.susurrus.R;
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 
 /**

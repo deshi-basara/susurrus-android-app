@@ -1,4 +1,4 @@
-package rocks.susurrus.susurrus.chat.models;
+package rocks.susurrus.susurrus.models;
 
 import android.media.Image;
 import android.net.Uri;

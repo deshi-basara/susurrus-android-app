@@ -19,7 +19,7 @@ import java.net.Socket;
 
 import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.R;
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 
 /**
@@ -79,6 +79,9 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
             Log.d(LOG_TAG, "Client successfully connected to " + this.serverAddress);
             Log.d(LOG_TAG, messageModel[0].toString());
+
+            // decrypt the message
+            //@todo decrypt
 
             // get the client's output stream and write the message to it
             OutputStream outputStream = client.getOutputStream();

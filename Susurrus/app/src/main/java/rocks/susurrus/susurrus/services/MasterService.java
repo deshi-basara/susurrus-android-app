@@ -13,6 +13,8 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import java.security.PublicKey;
+
 import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.R;
@@ -121,7 +123,24 @@ public class MasterService extends Service {
         if(!hasAuth) {
             // create a thread, for authenticating with the service/room
             this.authRunnable = new ServerAuthenticationThread(
-                    this.roomData);
+                    this.roomData,
+                    new PublicKey() {
+                        @Override
+                        public String getAlgorithm() {
+                            return null;
+                        }
+
+                        @Override
+                        public String getFormat() {
+                            return null;
+                        }
+
+                        @Override
+                        public byte[] getEncoded() {
+                            return new byte[0];
+                        }
+                    }
+            );
 
             this.authRunnable.start();
 

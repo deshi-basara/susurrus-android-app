@@ -2,6 +2,9 @@ package rocks.susurrus.susurrus.utils;
 
 import android.util.Base64;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -15,7 +18,12 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 
 /**
@@ -91,6 +99,119 @@ public class Crypto {
         }
 
         return privateKey;
+    }
+
+    /**
+     * Encrypts an unencrypted serializable Object with the handed publicKey.
+     * @param _unencryptedObj Serializable object.
+     * @param _publicKey The user's publicKey.
+     * @return A RSA-encrypted sealedObject.
+     */
+    public static SealedObject encryptBytes(Serializable _unencryptedObj, PublicKey _publicKey) {
+
+        // initiate the encryption cipher
+        Cipher cipher;
+        try {
+            // get a Cipher object that implements the RSA transformation.
+            cipher = Cipher.getInstance("RSA");
+
+            // initialize this cipher with the public key from the given certificate and use it
+            // for encryption
+            cipher.init(Cipher.ENCRYPT_MODE, _publicKey);
+
+        } catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(NoSuchPaddingException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(InvalidKeyException e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        // use the cipher for encryption
+        SealedObject encryptedObj;
+        try {
+            // creates a new SealedObject instance wrapping the specified object and sealing it
+            // using the specified cipher.
+            encryptedObj = new SealedObject(_unencryptedObj, cipher);
+        } catch(IllegalBlockSizeException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(NullPointerException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(IOException e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        return encryptedObj;
+    }
+
+    /**
+     * Decrypts an encrypted sealedObject with the handed privateKey.
+     * @param _encryptedObj RSA-encrypted sealedObject.
+     * @param _privateKey The user's privateKey.
+     * @return An unencrypted Object.
+     */
+    public static Object decryptBytes(SealedObject _encryptedObj, PrivateKey _privateKey) {
+
+        // initiate the decryption cipher
+        Cipher cipher;
+        try {
+            // get a Cipher object that implements the RSA transformation.
+            cipher = Cipher.getInstance("RSA");
+
+            // initialize this cipher with the private key from the given certificate and use it
+            // for decryption
+            cipher.init(Cipher.DECRYPT_MODE, _privateKey);
+
+        } catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(NoSuchPaddingException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(InvalidKeyException e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        // use the cipher for decryption
+        Object decryptedObj;
+        try {
+            // returns the wrapped object, decrypting it using the specified key
+            decryptedObj = _encryptedObj.getObject(cipher);
+        } catch(IOException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(ClassNotFoundException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(IllegalBlockSizeException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(BadPaddingException e) {
+            e.printStackTrace();
+
+            return null;
+        }
+
+        return decryptedObj;
     }
 
 }

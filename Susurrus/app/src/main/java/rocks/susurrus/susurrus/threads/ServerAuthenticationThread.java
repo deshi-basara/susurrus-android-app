@@ -10,9 +10,11 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.models.AuthModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
@@ -26,8 +28,9 @@ public class ServerAuthenticationThread extends Thread {
     /**
      * Networking
      */
-    public static ArrayList<InetAddress> authenticatedClients;
+    public static HashMap<InetAddress, PublicKey> authenticatedClients;
     private ServerSocket authSocket;
+    private PublicKey masterPublicKey;
 
     /**
      * Data
@@ -37,11 +40,14 @@ public class ServerAuthenticationThread extends Thread {
 
     /**
      * Thread constructor.
-     * @param startedRoom
+     * @param _startedRoom
+     * @param _publicKey
      */
-    public ServerAuthenticationThread(RoomModel startedRoom) {
-        this.administratedRoom = startedRoom;
-        this.authenticatedClients = new ArrayList<InetAddress>();
+    public ServerAuthenticationThread(RoomModel _startedRoom, PublicKey _publicKey) {
+        this.administratedRoom = _startedRoom;
+        this.masterPublicKey = _publicKey;
+
+        this.authenticatedClients = new HashMap<InetAddress, PublicKey>();
     }
 
     @Override
@@ -65,15 +71,15 @@ public class ServerAuthenticationThread extends Thread {
 
                 // is newly connected client already authenticated?
                 InetAddress authClientAddress = authClient.getInetAddress();
-                if(!this.authenticatedClients.contains(authClientAddress)) {
+                if(!this.authenticatedClients.containsKey(authClientAddress)) {
                     // not connected yet, get client's input-stream, buffer it and read
                     // buffered messages
                     InputStream inputStream = authClient.getInputStream();
                     ObjectInputStream objectIS = new ObjectInputStream(inputStream);
                     AuthModel authRequest = (AuthModel) objectIS.readObject();
 
-                    Log.d(LOG_TAG, "Authentication: " + authRequest.getRoomPassword());
-                    Log.d(LOG_TAG, "hasPassword: "  + administratedRoom.hasEncryption());
+                    //Log.d(LOG_TAG, "Authentication: " + authRequest.getRoomPassword());
+                    //Log.d(LOG_TAG, "hasPassword: "  + administratedRoom.hasEncryption());
 
                     // valid auth-request?
 
@@ -92,7 +98,7 @@ public class ServerAuthenticationThread extends Thread {
                     else {
                         // no password needed or correct, add client to the authenticated-
                         // Clients-list and set response to "authenticated"
-                        authenticatedClients.add(authClientAddress);
+                        authenticatedClients.put(authClientAddress, null);
                         authRequest.setAuthenticationStatus(true);
                     }
 

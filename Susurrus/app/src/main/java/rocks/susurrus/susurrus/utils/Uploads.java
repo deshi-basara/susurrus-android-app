@@ -63,5 +63,4 @@ public class Uploads {
 
         return resultArray;
     }
-
 }

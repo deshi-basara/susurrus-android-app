@@ -13,7 +13,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import rocks.susurrus.susurrus.ChatActivity;
-import rocks.susurrus.susurrus.chat.models.MessageModel;
+import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
 
@@ -55,6 +55,8 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
     protected Boolean doInBackground(MessageModel... messageModels) {
         Log.d(LOG_TAG, "Starting the server-distribution-task ...");
 
+        /*
+
         // send message to all authenticated clients
         try {
             ArrayList<InetAddress> authenticatedClients = ServerAuthenticationThread.
@@ -93,6 +95,8 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
             e.printStackTrace();
             Log.e(LOG_TAG, "Error sending a message");
         }
+
+        */
 
         return true;
     }
