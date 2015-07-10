@@ -33,13 +33,13 @@ public class Crypto {
 
     private static final String CRYPTO_ALGO = "RSA";
 
-    public static ArrayList generateKeys() {
+    public static ArrayList generateKeys() throws RuntimeException {
         ArrayList keys = new ArrayList();
 
         // initiate the key-generator (rsa)
         try {
             KeyPairGenerator generator = KeyPairGenerator.getInstance(CRYPTO_ALGO);
-            generator.initialize(1024);
+            generator.initialize(2048);
 
             // generate key-pair
             KeyPair pair = generator.generateKeyPair();
@@ -51,6 +51,8 @@ public class Crypto {
             keys.add(publicKey);
         } catch(NoSuchAlgorithmException e) {
             e.printStackTrace();
+
+            throw new RuntimeException("Keys could not be generated");
         }
 
         return keys;
@@ -113,7 +115,7 @@ public class Crypto {
         Cipher cipher;
         try {
             // get a Cipher object that implements the RSA transformation.
-            cipher = Cipher.getInstance("RSA");
+            cipher = Cipher.getInstance(CRYPTO_ALGO);
 
             // initialize this cipher with the public key from the given certificate and use it
             // for encryption
@@ -168,7 +170,7 @@ public class Crypto {
         Cipher cipher;
         try {
             // get a Cipher object that implements the RSA transformation.
-            cipher = Cipher.getInstance("RSA");
+            cipher = Cipher.getInstance(CRYPTO_ALGO);
 
             // initialize this cipher with the private key from the given certificate and use it
             // for decryption

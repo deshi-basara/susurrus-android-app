@@ -203,20 +203,9 @@ public class SettingsActivity extends ActionBarActivity {
 
             // valid keys generated?
             if(privateKey != null && publicKey != null) {
-                // save keys as string
-                String privateString = Crypto.keyToString(privateKey);
-                String publicString = Crypto.keyToString(publicKey);
-
-                // save as preferences
-                SharedPreferences.Editor settingsEditor = settings.edit();
-                settingsEditor.putString(Settings.PREF_PRIVATE_KEY, privateString);
-                settingsEditor.putString(Settings.PREF_PUB_KEY, publicString);
-
-                settingsEditor.commit();
-
-                /*Log.d(LOG_TAG, "before: " + privateString);
-                PrivateKey test = Crypto.privateStringToKey(privateString);
-                Log.d(LOG_TAG, "after: " + Crypto.keyToString(test));*/
+                // save keys
+                Settings.getInstance().setPublicKey(publicKey);
+                Settings.getInstance().setPrivateKey(privateKey);
             }
             else {
                 Log.e(LOG_TAG, "No valid keys generated");

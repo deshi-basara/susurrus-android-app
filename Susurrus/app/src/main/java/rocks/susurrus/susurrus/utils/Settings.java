@@ -51,6 +51,8 @@ public class Settings {
     public Settings(SharedPreferences settings, String password) {
         this.settings = settings;
         this.settingsPassword = password;
+
+        Log.d(LOG_TAG, "Settings Instance created");
     }
 
     /**
@@ -108,6 +110,24 @@ public class Settings {
         return true;
     }
 
+    public void setPublicKey(PublicKey _publicKey) {
+        // convert to string and save
+        String publicString = Crypto.keyToString(_publicKey);
+
+        this.settings.edit().putString(Settings.PREF_PUB_KEY, publicString).commit();
+
+        Log.d(LOG_TAG, "New publicKey: " + publicString);
+    }
+
+    public void setPrivateKey(PrivateKey _privateKey) {
+        // convert to string and save
+        String privateString = Crypto.keyToString(_privateKey);
+
+        this.settings.edit().putString(Settings.PREF_PRIVATE_KEY, privateString).commit();
+
+        Log.d(LOG_TAG, "New privateKey: " + privateString);
+    }
+
     /**
      * Returns the PublicKey saved in SharedPreferences.
      * @return
@@ -115,7 +135,7 @@ public class Settings {
      */
     public PublicKey getPublicKey() throws RuntimeException {
         String publicKeyString = this.settings.getString(Settings.PREF_PUB_KEY, "empty");
-        if(publicKeyString.equals("empty")) {
+        if(publicKeyString == null || publicKeyString.equals("empty")) {
             throw new RuntimeException("No PublicKey available");
         }
 
@@ -132,7 +152,7 @@ public class Settings {
      */
     public PrivateKey getPrivateKey() throws RuntimeException {
         String privateKeyString = this.settings.getString(Settings.PREF_PRIVATE_KEY, "empty");
-        if(privateKeyString.equals("empty")) {
+        if(privateKeyString == null || privateKeyString.equals("empty")) {
             throw new RuntimeException("No PrivateKey available");
         }
 
