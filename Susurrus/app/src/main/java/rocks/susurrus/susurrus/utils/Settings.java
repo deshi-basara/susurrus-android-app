@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.securepreferences.SecurePreferences;
 
+import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -38,7 +39,7 @@ public class Settings {
     /**
      * Data
      */
-    private SecurePreferences settings;
+    private SharedPreferences settings;
     private String settingsPassword;
 
     /**
@@ -47,7 +48,7 @@ public class Settings {
      * @param settings
      * @param password
      */
-    public Settings(SecurePreferences settings, String password) {
+    public Settings(SharedPreferences settings, String password) {
         this.settings = settings;
         this.settingsPassword = password;
     }
@@ -74,7 +75,7 @@ public class Settings {
     public static boolean unlockSettings(Context _context, String _password) {
 
         // try to open locked settings and ask for a value
-        SecurePreferences settings = new SecurePreferences(_context, _password, null);
+        SharedPreferences settings = new SecurePreferences(_context, _password, null);
         if(settings.getString(Settings.PREF_USER_NAME, "default") == null) {
             // value not available, password has to be invalid
             return false;
@@ -87,6 +88,31 @@ public class Settings {
         }
     }
 
+    /**
+     * Updates the current application password with a new password, if the old one is correct.
+     * @param _context Application context calling the method.
+     * @param _oldPassword Current application password.
+     * @param _newPassword New application password.
+     * @return True, if the update was successfully.
+     */
+    public static boolean changePassword(Context _context, String _oldPassword, String _newPassword) {
+        SecurePreferences securePrefs = new SecurePreferences(_context, _oldPassword, null);
+        try {
+            securePrefs.handlePasswordChange(_newPassword, _context);
+        } catch(GeneralSecurityException e) {
+            e.printStackTrace();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns the PublicKey saved in SharedPreferences.
+     * @return
+     * @throws RuntimeException
+     */
     public PublicKey getPublicKey() throws RuntimeException {
         String publicKeyString = this.settings.getString(Settings.PREF_PUB_KEY, "empty");
         if(publicKeyString.equals("empty")) {
@@ -99,6 +125,11 @@ public class Settings {
         return publicKey;
     }
 
+    /**
+     * Returns the PrivateKey saved in SharedPreferences.
+     * @return
+     * @throws RuntimeException
+     */
     public PrivateKey getPrivateKey() throws RuntimeException {
         String privateKeyString = this.settings.getString(Settings.PREF_PRIVATE_KEY, "empty");
         if(privateKeyString.equals("empty")) {

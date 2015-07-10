@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -147,6 +148,39 @@ public class SettingsActivity extends ActionBarActivity {
     }
 
     /**
+     * Opens a new Dialog for entering a new application password.
+     * The new password will be validated and a password change request will be sent.
+     * @param _oldPassword Current password.
+     */
+    private void changePasswordDialog(final String _oldPassword) {
+        new MaterialDialog.Builder(SettingsActivity.this)
+                .title(R.string.settings_change_password_dialog_title_new)
+                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+                .input(R.string.settings_change_password_dialog_hint_new, 0,
+                        new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(MaterialDialog dialog, CharSequence input) {
+                                String newPassword = input.toString();
+
+                                if (newPassword.isEmpty()) {
+                                    return;
+                                } else {
+                                    boolean updated = Settings.changePassword(
+                                            getApplicationContext(),
+                                            _oldPassword,
+                                            newPassword
+                                    );
+
+                                    Log.d(LOG_TAG, "updated: " + updated);
+                                    //@todo give update feedback
+                                }
+                            }
+                        })
+                .negativeText(R.string.main_dialog_cancel)
+                .show();
+    }
+
+    /**
      * OnClick: R.id.settings_generate_container.
      * Generates a new Private-/Public-Key.
      */
@@ -203,19 +237,42 @@ public class SettingsActivity extends ActionBarActivity {
 
     /**
      * OnClick: R.id.settings_change_password_container.
-     * Generates a new application-password.
+     * Changes the application-password, if the user enters the current password.
      */
     private View.OnClickListener onChangeListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             // start generation
-
             new MaterialDialog.Builder(SettingsActivity.this)
-                    .iconRes(R.drawable.key_512)
+                    .iconRes(R.drawable.lock_portrait_512)
                     .limitIconToDefaultSize()
-                    .title(R.string.settings_generate_key_title)
-                    .content(R.string.settings_generate_key_content)
-                    .positiveText("Coool")
+                    .title(R.string.settings_change_password_dialog_title)
+                    .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+                    .input(R.string.main_dialog_password_hint, 0, new MaterialDialog.InputCallback() {
+                        @Override
+                        public void onInput(MaterialDialog dialog, CharSequence input) {
+                            String enteredPassword = input.toString();
+
+                            // is the password valid?
+                            boolean unlocked = Settings.unlockSettings(
+                                    getApplicationContext(),
+                                    enteredPassword
+                            );
+
+                            Log.d(LOG_TAG, "unlocked: " + unlocked);
+
+                            if(unlocked) {
+                                changePasswordDialog(enteredPassword);
+                            }
+                            else {
+                                //dialog.setContent(R.string.main_dialog_password_wrong);
+                                //@todo Wrong password handling
+
+                                return;
+                            }
+                        }
+                    })
+                    .negativeText(R.string.main_dialog_cancel)
                     .show();
         }
     };
