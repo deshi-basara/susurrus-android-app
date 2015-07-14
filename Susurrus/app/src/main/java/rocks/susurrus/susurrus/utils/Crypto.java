@@ -4,6 +4,7 @@ import android.util.Base64;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -17,6 +18,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -25,6 +29,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
+
+import rocks.susurrus.susurrus.models.EncryptionModel;
 
 /**
  * Created by simon on 14.06.15.
@@ -39,7 +45,8 @@ public class Crypto {
         // initiate the key-generator (rsa)
         try {
             KeyPairGenerator generator = KeyPairGenerator.getInstance(CRYPTO_ALGO);
-            generator.initialize(2048);
+            SecureRandom randomNumbers = new SecureRandom();
+            generator.initialize(2048, randomNumbers);
 
             // generate key-pair
             KeyPair pair = generator.generateKeyPair();
@@ -105,21 +112,50 @@ public class Crypto {
 
     /**
      * Encrypts an unencrypted serializable Object with the handed publicKey.
+     *
+     * At first an AES-Session-Key is generated for encrypting the handed SealedObject. The AES-
+     * Session-Key is wrapped with the user's publicKey. The wrapped-key can be used to decrypt
+     * the SealedObject later.
+     *
      * @param _unencryptedObj Serializable object.
      * @param _publicKey The user's publicKey.
-     * @return A RSA-encrypted sealedObject.
+     * @return An EncryptionModel with SealedObject and wrapped-Key.
      */
-    public static SealedObject encryptBytes(Serializable _unencryptedObj, PublicKey _publicKey) {
+    public static EncryptionModel encryptBytes(Serializable _unencryptedObj,
+                                                             PublicKey _publicKey) {
+
+        // generate a random AES-key for encrypting the object's data
+        SecretKey aesSessionKey;
+        try {
+            // generate key
+            KeyGenerator generator = KeyGenerator.getInstance("AES");
+            SecureRandom randomNumbers = new SecureRandom();
+            generator.init(256, randomNumbers);
+            aesSessionKey = generator.generateKey();
+
+        } catch(NoSuchAlgorithmException e) {
+            e.printStackTrace();
+
+            return null;
+        }
 
         // initiate the encryption cipher
         Cipher cipher;
+        byte[] wrappedKey;
         try {
-            // get a Cipher object that implements the RSA transformation.
+            // get a cipher object that implements the RSA transformation
             cipher = Cipher.getInstance(CRYPTO_ALGO);
 
-            // initialize this cipher with the public key from the given certificate and use it
-            // for encryption
-            cipher.init(Cipher.ENCRYPT_MODE, _publicKey);
+            // initialize cipher with the public key. Use WRAP_MODE for wrapping the encrypted
+            // AES-data with the handed public key.
+            cipher.init(Cipher.WRAP_MODE, _publicKey);
+
+            // wrap AES-key
+            wrappedKey = cipher.wrap(aesSessionKey);
+
+            // get a new cipher and use the wrapped AES-key for encryption
+            cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, aesSessionKey);
 
         } catch(NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -130,6 +166,10 @@ public class Crypto {
 
             return null;
         } catch(InvalidKeyException e) {
+            e.printStackTrace();
+
+            return null;
+        } catch(IllegalBlockSizeException e) {
             e.printStackTrace();
 
             return null;
@@ -155,7 +195,7 @@ public class Crypto {
             return null;
         }
 
-        return encryptedObj;
+        return new EncryptionModel(encryptedObj, wrappedKey);
     }
 
     /**
@@ -164,17 +204,23 @@ public class Crypto {
      * @param _privateKey The user's privateKey.
      * @return An unencrypted Object.
      */
-    public static Object decryptBytes(SealedObject _encryptedObj, PrivateKey _privateKey) {
+    public static Object decryptBytes(SealedObject _encryptedObj, PrivateKey _privateKey,
+                                      byte[] _wrappedKey) {
 
         // initiate the decryption cipher
         Cipher cipher;
         try {
-            // get a Cipher object that implements the RSA transformation.
+            // get a Cipher object that implements the RSA transformation
             cipher = Cipher.getInstance(CRYPTO_ALGO);
 
             // initialize this cipher with the private key from the given certificate and use it
             // for decryption
-            cipher.init(Cipher.DECRYPT_MODE, _privateKey);
+            cipher.init(Cipher.UNWRAP_MODE, _privateKey);
+
+            Key aesSessionKey = cipher.unwrap(_wrappedKey, "AES", Cipher.SECRET_KEY);
+
+            cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, aesSessionKey);
 
         } catch(NoSuchAlgorithmException e) {
             e.printStackTrace();

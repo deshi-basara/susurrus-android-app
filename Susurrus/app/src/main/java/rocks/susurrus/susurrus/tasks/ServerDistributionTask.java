@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.crypto.SealedObject;
 
 import rocks.susurrus.susurrus.ChatActivity;
+import rocks.susurrus.susurrus.models.EncryptionModel;
 import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
@@ -91,12 +92,12 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
                 Log.d(LOG_TAG, "Connected to client: " + currentAddress);
 
                 // encrypt/seal the message
-                SealedObject sealedMessage = Crypto.encryptBytes(messageModels[0],
+                EncryptionModel encryptedMessage = Crypto.encryptBytes(messageModels[0],
                         currentPublicKey);
 
                 // get the output-Stream of the socket and send the message
                 OutputStream outputStream = socket.getOutputStream();
-                new ObjectOutputStream(outputStream).writeObject(sealedMessage);
+                new ObjectOutputStream(outputStream).writeObject(encryptedMessage);
 
                 Log.v(LOG_TAG, "doInBackground: write to "+ currentAddress +" succeeded");
                 socket.close();

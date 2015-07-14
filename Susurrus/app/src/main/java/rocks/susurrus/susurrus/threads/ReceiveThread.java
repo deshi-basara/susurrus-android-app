@@ -15,6 +15,7 @@ import java.security.PublicKey;
 
 import javax.crypto.SealedObject;
 
+import rocks.susurrus.susurrus.models.EncryptionModel;
 import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.utils.Crypto;
@@ -64,10 +65,14 @@ public class ReceiveThread extends Thread {
 
                 // get server's input-stream, buffer it and read buffered messages
                 InputStream inputStream = connectedClient.getInputStream();
-                ObjectInputStream objectIS = new ObjectInputStream(inputStream);
-                SealedObject sealedMessage = (SealedObject) objectIS.readObject();
+                ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+                EncryptionModel encryptedMessage = (EncryptionModel) objectInputStream.readObject();
+
+                SealedObject sealedMessage = encryptedMessage.getSealedObject();
+                byte[] wrappedKey = encryptedMessage.getWrappedKey();
+
                 MessageModel receivedMessage = (MessageModel)
-                        Crypto.decryptBytes(sealedMessage, this.masterPrivateKey);
+                        Crypto.decryptBytes(sealedMessage, this.masterPrivateKey, wrappedKey);
 
                 // get the ip of the client and add it to the message
                 InetAddress clientAddress = connectedClient.getInetAddress();

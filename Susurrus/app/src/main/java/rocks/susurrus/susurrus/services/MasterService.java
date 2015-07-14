@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.models.RoomModel;
@@ -162,7 +163,7 @@ public class MasterService extends Service {
         if(!this.hasIcon) {
 
             // set MainActivity as notification action, which redirects to the last opened Activity
-            Intent notificationIntent = new Intent(this, MainActivity.class);
+            Intent notificationIntent = new Intent(this, ChatActivity.class);
             notificationIntent.addCategory(Intent.CATEGORY_LAUNCHER);
             notificationIntent.setAction(Intent.ACTION_MAIN);
             PendingIntent resultPendingIntent =

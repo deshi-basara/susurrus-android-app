@@ -21,6 +21,7 @@ import javax.crypto.SealedObject;
 
 import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.R;
+import rocks.susurrus.susurrus.models.EncryptionModel;
 import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.utils.Crypto;
@@ -84,13 +85,13 @@ public class ClientDistributionTask extends AsyncTask<MessageModel, Integer, Boo
             Log.d(LOG_TAG, messageModel[0].toString());
 
             // encrypt/seal the message
-            SealedObject sealedMessage = Crypto.encryptBytes(messageModel[0],
+            EncryptionModel encryptedMessage = Crypto.encryptBytes(messageModel[0],
                     ClientAuthenticationTask.masterPublicKey);
 
             // get the client's output stream and write the sealed message to it
             OutputStream outputStream = client.getOutputStream();
             // we only pass one argument at max, always use the first element [0] from the 'varargs'
-            new ObjectOutputStream(outputStream).writeObject(sealedMessage);
+            new ObjectOutputStream(outputStream).writeObject(encryptedMessage);
 
             Log.d(LOG_TAG, "Client successfully sent his message to " + this.serverAddress);
             publishProgress(this.MESSAGE_SENT);
