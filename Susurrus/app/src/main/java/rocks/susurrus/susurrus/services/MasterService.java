@@ -21,6 +21,7 @@ import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
 import rocks.susurrus.susurrus.threads.ServerReceiveThread;
+import rocks.susurrus.susurrus.utils.Settings;
 
 public class MasterService extends Service {
     final static String LOG_TAG = "MessengerService";
@@ -124,22 +125,7 @@ public class MasterService extends Service {
             // create a thread, for authenticating with the service/room
             this.authRunnable = new ServerAuthenticationThread(
                     this.roomData,
-                    new PublicKey() {
-                        @Override
-                        public String getAlgorithm() {
-                            return null;
-                        }
-
-                        @Override
-                        public String getFormat() {
-                            return null;
-                        }
-
-                        @Override
-                        public byte[] getEncoded() {
-                            return new byte[0];
-                        }
-                    }
+                    Settings.getInstance().getPublicKey()
             );
 
             this.authRunnable.start();
