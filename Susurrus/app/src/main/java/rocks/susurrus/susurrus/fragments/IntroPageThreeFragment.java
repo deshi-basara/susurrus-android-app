@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.utils.RandomName;
@@ -21,6 +23,7 @@ public class IntroPageThreeFragment extends Fragment {
      * Views
      */
     EditText inputName;
+    ImageButton buttonRandomName;
 
 
     public IntroPageThreeFragment() {
@@ -33,12 +36,23 @@ public class IntroPageThreeFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_intro_page_three, container, false);
 
-        // get input field
-        inputName = (EditText) view.findViewById(R.id.intro_three_input_name);
-
+        setView(view);
         insertRandomName();
 
         return view;
+    }
+
+    /**
+     * Set all view elements.
+     * @param _view Fragment view.
+     */
+    private void setView(View _view) {
+        // get views
+        this.inputName = (EditText) _view.findViewById(R.id.username_input_name);
+        this.buttonRandomName = (ImageButton) _view.findViewById(R.id.username_refresh_button);
+
+        // set listeners
+        this.buttonRandomName.setOnClickListener(this.randomListener);
     }
 
     /**
@@ -49,5 +63,16 @@ public class IntroPageThreeFragment extends Fragment {
         RandomName randName = new RandomName(getActivity());
         inputName.setText(randName.generate());
     }
+
+    /**
+     * OnClickListener: buttonRandomName.
+     * Refreshes the random name.
+     */
+    private View.OnClickListener randomListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            insertRandomName();
+        }
+    };
 
 }

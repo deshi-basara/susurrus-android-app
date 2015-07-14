@@ -4,6 +4,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
+import java.util.ArrayList;
+
+import rocks.susurrus.susurrus.fragments.IntroPageFourFragment;
 import rocks.susurrus.susurrus.fragments.IntroPageOneFragment;
 import rocks.susurrus.susurrus.fragments.IntroPageThreeFragment;
 import rocks.susurrus.susurrus.fragments.IntroPageTwoFragment;
@@ -31,13 +34,19 @@ public class IntroPageAdapter extends FragmentStatePagerAdapter {
         // for each different position, return another fragment with different layout
         switch(position) {
             case 0:
-                return new IntroPageOneFragment();
+                Fragment fragmentOne = new IntroPageOneFragment();
+                return fragmentOne;
             case 1:
-                return new IntroPageTwoFragment();
+                Fragment fragmentTwo = new IntroPageTwoFragment();
+                return fragmentTwo;
             case 2:
-                return new IntroPageThreeFragment();
+                Fragment fragmentThree = new IntroPageThreeFragment();
+                return fragmentThree;
+            case 3:
+                Fragment fragmentFour = new IntroPageFourFragment();
+                return fragmentFour;
             default:
-                return new IntroPageThreeFragment();
+                return new IntroPageOneFragment();
         }
     }
 

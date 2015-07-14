@@ -2,17 +2,34 @@ package rocks.susurrus.susurrus;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioGroup;
+import android.widget.TextView;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Random;
 
 import me.relex.circleindicator.CircleIndicator;
+import rocks.susurrus.susurrus.fragments.IntroPageFourFragment;
+import rocks.susurrus.susurrus.utils.Crypto;
+import rocks.susurrus.susurrus.utils.RandomName;
+import rocks.susurrus.susurrus.utils.Settings;
 import rocks.susurrus.susurrus.views.adapters.IntroPageAdapter;
 
 public class IntroActivity extends FragmentActivity {
@@ -36,7 +53,14 @@ public class IntroActivity extends FragmentActivity {
     private int slidePos = 0;
     private Button buttonPrev;
     private Button buttonNext;
+    private CircleIndicator introIndicator;
     private RadioGroup radioIndicators;
+
+    /**
+     * Data
+     */
+    private String userPassword;
+    private String userName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +73,7 @@ public class IntroActivity extends FragmentActivity {
 
         // Instantiate ViewPager and PagerAdapter.
         introPager = (ViewPager) findViewById(R.id.viewpager_unselected_background);
-        CircleIndicator introIndicator = (CircleIndicator) findViewById(R.id.indicator_unselected_background);
+        introIndicator = (CircleIndicator) findViewById(R.id.indicator_unselected_background);
         introPagerAdapter = new IntroPageAdapter(getSupportFragmentManager());
         //introPager.setOffscreenPageLimit(introPagerAdapter.getCount());
         introPager.setAdapter(introPagerAdapter);
@@ -108,7 +132,24 @@ public class IntroActivity extends FragmentActivity {
      */
     private void onControlButton() {
         Log.d(logIndicator, "onControlButton(): " + slidePos);
-        introPager.setCurrentItem(slidePos, true);
+
+        if(slidePos != 4) {
+            introPager.setCurrentItem(slidePos, true);
+        }
+        else {
+            // last step, check passwords and finish intro
+            Log.d(logIndicator, "case 4");
+
+            String username = checkUsername();
+            String password = checkPassword();
+
+            if(password == null) {
+                Log.e(logIndicator, "return");
+                return;
+            }
+
+            finishIntro(password, username);
+        }
     }
 
     /**
@@ -148,5 +189,80 @@ public class IntroActivity extends FragmentActivity {
                 buttonNext.setText(getString(R.string.intro_button_ready));
                 break;
         }
+    }
+
+    /**
+     * Fetches and validates the entered passwords inside fragment four.
+     * @return Entered password-string or "null" if both entered passwords do not match.
+     */
+    private String checkPassword() {
+        // get the entered passwords
+        EditText passwordInputOne = (EditText) introPager
+                .findViewById(R.id.intro_four_passwort_one);
+        EditText passwordInputTwo = (EditText) introPager
+                .findViewById(R.id.intro_four_passwort_two);
+
+        // do the passwords match?
+        String passwordValueOne = passwordInputOne.getText().toString().trim();
+        String passwordValueTwo = passwordInputTwo.getText().toString().trim();
+        if(passwordValueOne.equals(passwordValueTwo) && !passwordValueOne.isEmpty()) {
+            return passwordValueOne;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Fetches and validates the entered username inside fragment three.
+     * @return Entered username-string.
+     */
+    private String checkUsername() {
+        // get the entered username
+        EditText usernameInput = (EditText) introPager
+                .findViewById(R.id.username_input_name);
+
+        // do the passwords match?
+        String usernameInputValue = usernameInput.getText().toString().trim();
+        if(!usernameInputValue.isEmpty()) {
+            return usernameInputValue;
+        }
+        else {
+            // no valid username entered, generate a new random name
+            return new RandomName(this).generate();
+        }
+    }
+
+    /**
+     * Generates all needed setting-values, inserts them inside the user's encrypted settings
+     * and redirects the user to the MainActivity.
+     * @param _password Application password string.
+     * @param _username Username string.
+     */
+    private void finishIntro(String _password, String _username) {
+
+        // give feedback
+        MaterialDialog finishDialog = new MaterialDialog.Builder(this)
+            .title(R.string.intro_finish_dialog_title)
+            .content(R.string.intro_finish_dialog_content)
+            .progress(true, 0)
+            .show();
+
+        // create public/private-Key for the user
+        ArrayList keys = Crypto.generateKeys();
+        String privateKeyString = Crypto.keyToString((PrivateKey) keys.get(0));
+        String publicKeyString = Crypto.keyToString((PublicKey) keys.get(1));
+
+        // save all needed data in a new settings files
+        Settings.setupSettings(this, _password, _username, publicKeyString, privateKeyString);
+        Settings.disableFirstRun(this);
+
+        // redirect to the MainActivity
+        Intent mainIntent = new Intent(this, MainActivity.class);
+        mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        finishDialog.dismiss();
+        startActivity(mainIntent);
+
     }
 }

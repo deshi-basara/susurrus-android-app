@@ -56,6 +56,7 @@
     <string name="main_dialog_cancel">Abbrechen</string>
 
 
+
     <!--
         Intro Activity
     -->
@@ -73,11 +74,20 @@
     <string name="intro_button_prev">Zurück</string>
     <string name="intro_button_ready">Fertig</string>
     <string name="intro_one_headline">Willkommen</string>
-    <string name="intro_two_headline">Benutzung</string>
+    <string name="intro_two_headline">Anforderungen</string>
+    <string name="intro_two_content_direct">WifiDirect wird unterstützt</string>
+    <string name="intro_two_content_hotspot">Keine aktive Verbindung zu einem Hotspot</string>
     <string name="intro_three_headline">Benutzername</string>
-    <string name="intro_four_headline">Generiere</string>
-    <string name="title_activity_chat">ChatActivity</string>
-    <string name="title_activity_create">CreateActivity</string>
+    <string name="intro_four_headline">Passwort</string>
+    <string name="intro_four_desc">
+        Deine persönlichen Daten und Schlüssel werden mit einem Passwort geschützt. Bitte gib
+        jetzt dein geheimes Passwort ein.
+    </string>
+    <string name="intro_four_password_hint">Passwort</string>
+    <string name="intro_four_password_hint_two">Passwort wiederholen</string>
+    <string name="intro_finish_dialog_title">Erzeuge Profil</string>
+    <string name="intro_finish_dialog_content">Einen Moment Geduld ...</string>
+
 
     <!--
         Create Activity
@@ -98,9 +108,13 @@
     <string name="create_dialog_group_creating">Raum wird erstellt ...</string>
     <string name="create_dialog_group_created">Raum erfolgreich erstellt</string>
 
+
+
+
     <!--
         Chat Activity
     -->
+    <string name="title_activity_chat">Chat</string>
     <string name="chat_drawer_title">Menü</string>
     <string name="chat_drawer_close">Menü schließen</string>
     <string name="chat_drawer_open">Menü öffnen</string>

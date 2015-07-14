@@ -42,8 +42,8 @@ public class IntroPageOneFragment extends Fragment {
 
 
     private void setLayout(View view) {
-        upperContainer = (ViewGroup) view.findViewById(R.id.upper_container);
-        logo = (ImageView) view.findViewById(R.id.logo);
+        //upperContainer = (ViewGroup) view.findViewById(R.id.upper_container);
+        //logo = (ImageView) view.findViewById(R.id.logo);
     }
 
     private void startAnimation() {

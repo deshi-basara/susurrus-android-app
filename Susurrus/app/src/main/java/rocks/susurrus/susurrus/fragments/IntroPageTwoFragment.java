@@ -14,7 +14,15 @@ public class IntroPageTwoFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_intro_page_one, container, false);
+        return inflater.inflate(R.layout.fragment_intro_page_two, container, false);
+    }
+
+    private void checkWifiDirect() {
+
+    }
+
+    private void checkHotspot() {
+
     }
 
 }
