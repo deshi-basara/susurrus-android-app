@@ -10,12 +10,18 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.crypto.SealedObject;
 
 import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
 import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
+import rocks.susurrus.susurrus.utils.Crypto;
 
 /**
  * Created by simon on 06.06.15.
@@ -55,18 +61,17 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
     protected Boolean doInBackground(MessageModel... messageModels) {
         Log.d(LOG_TAG, "Starting the server-distribution-task ...");
 
-        /*
-
         // send message to all authenticated clients
         try {
-            ArrayList<InetAddress> authenticatedClients = ServerAuthenticationThread.
+            HashMap<InetAddress, PublicKey> authenticatedClients = ServerAuthenticationThread.
                     authenticatedClients;
 
             InetAddress ownerAddress = messageModels[0].getOwnerAddress();
             // loop through all authenticated clients
             Log.d(LOG_TAG, "availableClients: " + authenticatedClients.size());
-            for(int i = 0; i < authenticatedClients.size(); i++) {
-                InetAddress currentAddress = authenticatedClients.get(i);
+            for(Map.Entry<InetAddress, PublicKey> clientEntry : authenticatedClients.entrySet()) {
+                InetAddress currentAddress = clientEntry.getKey();
+                PublicKey currentPublicKey = clientEntry.getValue();
 
                 // check if the currentAddress matches the Address of the message owner, skip
                 // the client
@@ -84,9 +89,13 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
                 Log.d(LOG_TAG, "Connected to client: " + currentAddress);
 
+                // encrypt/seal the message
+                SealedObject sealedMessage = Crypto.encryptBytes(messageModels[0],
+                        currentPublicKey);
+
                 // get the output-Stream of the socket and send the message
                 OutputStream outputStream = socket.getOutputStream();
-                new ObjectOutputStream(outputStream).writeObject(messageModels[0]);
+                new ObjectOutputStream(outputStream).writeObject(sealedMessage);
 
                 Log.v(LOG_TAG, "doInBackground: write to "+ currentAddress +" succeeded");
                 socket.close();
@@ -95,8 +104,6 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
             e.printStackTrace();
             Log.e(LOG_TAG, "Error sending a message");
         }
-
-        */
 
         return true;
     }
