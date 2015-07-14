@@ -10,15 +10,20 @@ import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import javax.crypto.SealedObject;
 
 import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.utils.Crypto;
 
 /**
  * Created by simon on 07.06.15.
  */
-public class ServerReceiveThread extends Thread {
-    public static final String LOG_TAG = "ServerReceiveThread";
+public class ReceiveThread extends Thread {
+    public static final String LOG_TAG = "ReceiveThread";
 
     /**
      * Handler
@@ -34,9 +39,11 @@ public class ServerReceiveThread extends Thread {
      * Data
      */
     private boolean isRunning = true;
+    private PrivateKey masterPrivateKey;
 
-    public ServerReceiveThread(Handler chatHandler){
-        this.handler = chatHandler;
+    public ReceiveThread(Handler _chatHandler, PrivateKey _masterPrivateKey){
+        this.handler = _chatHandler;
+        this.masterPrivateKey = _masterPrivateKey;
     }
 
     @Override
@@ -44,7 +51,7 @@ public class ServerReceiveThread extends Thread {
      * Is executed when thread is started.
      */
     public void run() {
-        Log.d(LOG_TAG, "Chat-Thread started.");
+        Log.d(LOG_TAG, "Receive-Thread started.");
 
         try {
             // create a new socket server
@@ -58,7 +65,9 @@ public class ServerReceiveThread extends Thread {
                 // get server's input-stream, buffer it and read buffered messages
                 InputStream inputStream = connectedClient.getInputStream();
                 ObjectInputStream objectIS = new ObjectInputStream(inputStream);
-                MessageModel receivedMessage = (MessageModel) objectIS.readObject();
+                SealedObject sealedMessage = (SealedObject) objectIS.readObject();
+                MessageModel receivedMessage = (MessageModel)
+                        Crypto.decryptBytes(sealedMessage, this.masterPrivateKey);
 
                 // get the ip of the client and add it to the message
                 InetAddress clientAddress = connectedClient.getInetAddress();

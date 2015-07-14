@@ -9,18 +9,13 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
-import java.security.PublicKey;
-
-import rocks.susurrus.susurrus.ChatActivity;
 import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.R;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.threads.ServerAuthenticationThread;
-import rocks.susurrus.susurrus.threads.ServerReceiveThread;
+import rocks.susurrus.susurrus.threads.ReceiveThread;
 import rocks.susurrus.susurrus.utils.Settings;
 
 public class MasterService extends Service {
@@ -35,7 +30,7 @@ public class MasterService extends Service {
      * Networking
      */
     private ServerAuthenticationThread authRunnable;
-    private ServerReceiveThread receiveRunnable;
+    private ReceiveThread receiveRunnable;
     private Thread authThread;
     private Thread chatThread;
     private boolean hasAuth = false;
@@ -145,7 +140,10 @@ public class MasterService extends Service {
 
         if(!this.hasChat) {
             // create a thread, for messaging with the service/room
-            this.receiveRunnable = new ServerReceiveThread(this.chatHandler);
+            this.receiveRunnable = new ReceiveThread(
+                    this.chatHandler,
+                    Settings.getInstance().getPrivateKey()
+            );
 
             this.receiveRunnable.start();
 
