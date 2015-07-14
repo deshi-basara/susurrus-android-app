@@ -62,14 +62,15 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
         Log.d(LOG_TAG, "Starting the server-distribution-task ...");
 
         // send message to all authenticated clients
-        try {
-            HashMap<InetAddress, PublicKey> authenticatedClients = ServerAuthenticationThread.
-                    authenticatedClients;
+        HashMap<InetAddress, PublicKey> authenticatedClients = ServerAuthenticationThread.
+                authenticatedClients;
 
-            InetAddress ownerAddress = messageModels[0].getOwnerAddress();
-            // loop through all authenticated clients
-            Log.d(LOG_TAG, "availableClients: " + authenticatedClients.size());
-            for(Map.Entry<InetAddress, PublicKey> clientEntry : authenticatedClients.entrySet()) {
+        InetAddress ownerAddress = messageModels[0].getOwnerAddress();
+        // loop through all authenticated clients
+        Log.d(LOG_TAG, "availableClients: " + authenticatedClients.size());
+        for(Map.Entry<InetAddress, PublicKey> clientEntry : authenticatedClients.entrySet()) {
+
+            try {
                 InetAddress currentAddress = clientEntry.getKey();
                 PublicKey currentPublicKey = clientEntry.getValue();
 
@@ -99,10 +100,11 @@ public class ServerDistributionTask extends AsyncTask<MessageModel, Integer, Boo
 
                 Log.v(LOG_TAG, "doInBackground: write to "+ currentAddress +" succeeded");
                 socket.close();
+            } catch(IOException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "Error sending a message");
             }
-        } catch(IOException e) {
-            e.printStackTrace();
-            Log.e(LOG_TAG, "Error sending a message");
+
         }
 
         return true;
