@@ -1,6 +1,9 @@
 package rocks.susurrus.susurrus.models;
 
+import android.util.Log;
+
 import java.io.Serializable;
+import java.security.PublicKey;
 
 /**
  * Created by simon on 14.06.15.
@@ -13,17 +16,20 @@ public class AuthModel implements Serializable {
      */
     private String roomPassword;
     private String publicString;
+    private String masterPublicString;
     private boolean authenticated = false;
 
     /**
      * Constructor.
      * Sets needed model attributes.
-     * @param roomPassword
-     * @param publicString
+     * @param _roomPassword
+     * @param _publicString
      */
-    public AuthModel(String roomPassword, String publicString) {
-        this.roomPassword = roomPassword;
-        this.publicString = publicString;
+    public AuthModel(String _roomPassword, String _publicString) {
+        this.roomPassword = _roomPassword;
+        this.publicString = _publicString;
+
+        Log.d(LOG_TAG, "Auth-Model: " + this.publicString);
     }
 
     /**
@@ -35,6 +41,9 @@ public class AuthModel implements Serializable {
     public String getPublicString() {
         return this.publicString;
     }
+    public String getMasterPublicString() {
+        return this.masterPublicString;
+    }
     public boolean getAuthenticationStatus() {
         return this.authenticated;
     }
@@ -42,5 +51,7 @@ public class AuthModel implements Serializable {
     public void setAuthenticationStatus(boolean status) {
         this.authenticated = status;
     }
-
+    public void setMasterPublicString(String _masterPublicString) {
+        this.masterPublicString = _masterPublicString;
+    }
 }

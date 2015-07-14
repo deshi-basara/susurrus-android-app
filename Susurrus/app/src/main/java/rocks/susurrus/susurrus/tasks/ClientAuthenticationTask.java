@@ -14,12 +14,14 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.PublicKey;
 
 import rocks.susurrus.susurrus.MainActivity;
 import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.models.AuthModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.utils.Crypto;
 
 /**
  * Created by simon on 07.06.15.
@@ -47,6 +49,7 @@ public class ClientAuthenticationTask extends AsyncTask<Void, Void, Boolean> {
     private MainActivity mainActivity;
     private InetAddress authServerAddress;
     private AuthModel authModel;
+    public static PublicKey masterPublicKey;
 
     /**
      * Task constructor.
@@ -92,6 +95,9 @@ public class ClientAuthenticationTask extends AsyncTask<Void, Void, Boolean> {
             // client authenticated?
             boolean isAuthenticated = authResponse.getAuthenticationStatus();
             if(isAuthenticated) {
+                String masterPublicString = authResponse.getMasterPublicString();
+                this.masterPublicKey = Crypto.publicStringToKey(masterPublicString);
+
                 // authenticated
                 publishMessage(this.SOCKET_AUTHENTICATED);
             }

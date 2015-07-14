@@ -82,45 +82,6 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        MessageModel newMessage = new MessageModel(false, "OWNER", 1);
-
-
-        PublicKey pubTest = Settings.getInstance().getPublicKey();
-        PrivateKey privTest = Settings.getInstance().getPrivateKey();
-
-        Log.d(LOG_TAG, "plain: " + newMessage.getOwnerName());
-
-        SealedObject encrypted = Crypto.encryptBytes(newMessage, pubTest);
-        Log.d(LOG_TAG, "Encrypted SealedObject is: " + encrypted);
-
-        Object decrypted = Crypto.decryptBytes(encrypted, privTest);
-        Log.d(LOG_TAG, "Decrypted Object is: " + decrypted);
-
-        MessageModel oldMessage = (MessageModel) decrypted;
-        Log.d(LOG_TAG, "Values before/after: " + oldMessage.getOwnerName() + "==" + "OWNER");
-
-        // is the activity started for shutting down the app?
-        /*if(getIntent().getBooleanExtra("EXIT", false)) {
-            Log.d(LOG_TAG, "Closing app ...");
-
-            // kill notification
-            NotificationManager notificationManager = (NotificationManager)
-                    getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(MasterService.NOTIFICATION_ID);
-
-            // kill activity and app
-            finish();
-            //System.exit(1);
-        }
-
-        // DEBUGGING
-        if(false) {
-            Intent chatIntent = new Intent(this, ChatActivity.class);
-            chatIntent.putExtra("ROOM_MODEL", new RoomModel("OWNER", "RAUM", "DATEN", "ROOM_IMAGE", false));
-            startActivity(chatIntent);
-        }*/
-
         setupFirstStart();
         setupView();
         setupHandler();
@@ -158,8 +119,6 @@ public class MainActivity extends ActionBarActivity {
      */
     protected void onDestroy() {
         super.onDestroy();
-
-        Log.d(LOG_TAG, "ONDESTROY!");
 
         // destroy running AsyncTasks (needed for lower Android-versions)
         if(this.authTask != null) {
@@ -491,12 +450,12 @@ public class MainActivity extends ActionBarActivity {
     public void startAuthentication() {
         Log.d(LOG_TAG, "startAuthentication");
 
-        // get the publicKey of the user
-
-
         // create a new authentication model
-        AuthModel authRequest = new AuthModel(this.clickedRoom.getRoomPassword(), "public");
-        //@todo insert real publicKey
+        PublicKey userPublicKey = Settings.getInstance().getPublicKey();
+        AuthModel authRequest = new AuthModel(
+                this.clickedRoom.getRoomPassword(),
+                Crypto.keyToString(userPublicKey)
+        );
 
         // get an instance of the wifiDirectReceiver
         WifiDirectBroadcastReceiver wifiDirectReceiver = WifiDirectBroadcastReceiver.getInstance();

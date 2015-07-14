@@ -18,6 +18,7 @@ import rocks.susurrus.susurrus.models.MessageModel;
 import rocks.susurrus.susurrus.models.AuthModel;
 import rocks.susurrus.susurrus.models.RoomModel;
 import rocks.susurrus.susurrus.services.WifiDirectService;
+import rocks.susurrus.susurrus.utils.Crypto;
 
 /**
  * Created by simon on 07.06.15.
@@ -78,10 +79,10 @@ public class ServerAuthenticationThread extends Thread {
                     ObjectInputStream objectIS = new ObjectInputStream(inputStream);
                     AuthModel authRequest = (AuthModel) objectIS.readObject();
 
-                    //Log.d(LOG_TAG, "Authentication: " + authRequest.getRoomPassword());
-                    //Log.d(LOG_TAG, "hasPassword: "  + administratedRoom.hasEncryption());
-
                     // valid auth-request?
+                    // @todo validate request
+                    String clientPublicKeyString = authRequest.getPublicString();
+                    PublicKey clientPublicKey = Crypto.publicStringToKey(clientPublicKeyString);
 
                     // check if the started Room has a password
                     boolean validPassword = false;
@@ -98,16 +99,17 @@ public class ServerAuthenticationThread extends Thread {
                     else {
                         // no password needed or correct, add client to the authenticated-
                         // Clients-list and set response to "authenticated"
-                        authenticatedClients.put(authClientAddress, null);
+                        authenticatedClients.put(authClientAddress, clientPublicKey);
                         authRequest.setAuthenticationStatus(true);
+                        authRequest.setMasterPublicString(Crypto.keyToString(this.masterPublicKey));
                     }
 
                     // get the output-Stream of the client and send the response
                     OutputStream outputStream = authClient.getOutputStream();
                     new ObjectOutputStream(outputStream).writeObject(authRequest);
 
-                    Log.d(LOG_TAG, "Authentication: " + authRequest.getAuthenticationStatus());
                     Log.d(LOG_TAG, "New Authentication: " + authClientAddress);
+                    Log.d(LOG_TAG, "New PublicKey: " + this.authenticatedClients.get(authClientAddress));
                 }
 
                 authClient.close();
@@ -136,7 +138,8 @@ public class ServerAuthenticationThread extends Thread {
     private boolean isValidRequest(AuthModel request) {
         try {
             String passwordString = request.getRoomPassword();
-            String publicString = request.getPublicString();
+            String clientPublicKeyString = request.getPublicString();
+            PublicKey clientPublicKey = Crypto.publicStringToKey(clientPublicKeyString);
         } catch(NoSuchMethodError e) {
             e.printStackTrace();
 
