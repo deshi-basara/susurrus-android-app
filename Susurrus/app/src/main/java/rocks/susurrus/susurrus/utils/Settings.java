@@ -26,6 +26,7 @@ public class Settings {
     public static final String PREF_PUB_KEY = "SUS_PUB_KEY";
     public static final String PREF_PRIVATE_KEY = "SUS_PUB_PRIVATE";
     public static final String PREF_PLAIN_STARTED = "SUS_PLAIN_STARTED";
+    private static final String PREF_UNENCRYPTED_NAME = "encrypted_prefs.xml";
 
     /**
      * Exceptions
@@ -89,6 +90,44 @@ public class Settings {
     }
 
     /**
+     * No more initialization needed, marks it in the unencryptred user settings.
+     * @param _context Application context.
+     */
+    public static void disableFirstRun(Context _context) {
+        // get unencrypted settings and mark PREF_PLAIN_STARTED as initialized
+        SharedPreferences plainPrefs = _context.getSharedPreferences(PREF_PLAIN_ID,
+                Context.MODE_PRIVATE);
+
+        plainPrefs.edit().putBoolean(PREF_PLAIN_STARTED, false).commit();
+    }
+
+    /**
+     * Initializes the encrypted user settings, with all needed default values.
+     * @param _context Application context.
+     * @param _password Application password.
+     * @param _username Username inside chat.
+     * @param _publicKeyString PublicKey for encryption.
+     * @param _privateKeyString PrivateKey for decryption.
+     */
+    public static void setupSettings(Context _context, String _password, String _username,
+                                        String _publicKeyString, String _privateKeyString) {
+
+        SharedPreferences setupPreferences = new SecurePreferences(_context, _password,
+                PREF_UNENCRYPTED_NAME);
+
+        // add values
+        SharedPreferences.Editor setupEditor = setupPreferences.edit();
+        setupEditor.putString(Settings.PREF_USER_NAME, _username);
+        setupEditor.putString(Settings.PREF_PUB_KEY, _publicKeyString);
+        setupEditor.putString(Settings.PREF_PRIVATE_KEY, _privateKeyString);
+        setupEditor.commit();
+
+        Log.d(LOG_TAG, "Username: " + setupPreferences.getString(Settings.PREF_USER_NAME, null));
+        Log.d(LOG_TAG, "Private: " + setupPreferences.getString(Settings.PREF_PRIVATE_KEY, null));
+        Log.d(LOG_TAG, "Username: " + setupPreferences.getString(Settings.PREF_PUB_KEY, null));
+    }
+
+    /**
      * Checks if the handed password is valid for unlocking the encrypted settings.
      * @param _context Application context.
      * @param _password Entered password.
@@ -97,7 +136,8 @@ public class Settings {
     public static boolean unlockSettings(Context _context, String _password) {
 
         // try to open locked settings and ask for a value
-        SharedPreferences settings = new SecurePreferences(_context, _password, null);
+        SharedPreferences settings = new SecurePreferences(_context, _password,
+                PREF_UNENCRYPTED_NAME);
         if(settings.getString(Settings.PREF_USER_NAME, "default") == null) {
             // value not available, password has to be invalid
             return false;
@@ -118,7 +158,8 @@ public class Settings {
      * @return True, if the update was successfully.
      */
     public static boolean changePassword(Context _context, String _oldPassword, String _newPassword) {
-        SecurePreferences securePrefs = new SecurePreferences(_context, _oldPassword, null);
+        SecurePreferences securePrefs = new SecurePreferences(_context, _oldPassword,
+                PREF_UNENCRYPTED_NAME);
         try {
             securePrefs.handlePasswordChange(_newPassword, _context);
         } catch(GeneralSecurityException e) {
@@ -130,6 +171,10 @@ public class Settings {
         return true;
     }
 
+    /**
+     * Saves the handed PublicKey as string in the encrypted settings file.
+     * @param _publicKey PublicKey for encryption.
+     */
     public void setPublicKey(PublicKey _publicKey) {
         // convert to string and save
         String publicString = Crypto.keyToString(_publicKey);
@@ -139,6 +184,10 @@ public class Settings {
         Log.d(LOG_TAG, "New publicKey: " + publicString);
     }
 
+    /**
+     * Saves the handed PrivateKey as string in the encrypted settings file.
+     * @param _privateKey PrivateKey for decryption.
+     */
     public void setPrivateKey(PrivateKey _privateKey) {
         // convert to string and save
         String privateString = Crypto.keyToString(_privateKey);
