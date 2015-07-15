@@ -36,6 +36,8 @@ public class MessageModel implements Serializable {
     private String message;
     private byte[] stream = null;
     private int streamLength = 0;
+    private String streamExtension;
+    private String streamName;
 
     /**
      * Model constructor.
@@ -64,6 +66,9 @@ public class MessageModel implements Serializable {
     public int getMessageType() {
         return this.messageType;
     }
+    public String getStreamName() {
+        return this.streamName;
+    }
 
     public Boolean isOwner() {
         return this.owner;
@@ -78,9 +83,11 @@ public class MessageModel implements Serializable {
     public void setOwnership(boolean hasOwnership) {
         this.owner = hasOwnership;
     }
-    public void setStream(byte[] stream, int length) {
-        this.stream = stream;
-        this.streamLength = length;
+    public void setStream(byte[] _stream, int _length, String _name, String _extension) {
+        this.stream = _stream;
+        this.streamLength = _length;
+        this.streamName = _name;
+        this.streamExtension = _extension;
     }
 
 }

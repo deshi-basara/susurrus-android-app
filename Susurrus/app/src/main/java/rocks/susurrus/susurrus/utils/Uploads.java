@@ -2,7 +2,10 @@ package rocks.susurrus.susurrus.utils;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -15,16 +18,18 @@ import java.util.ArrayList;
  * Created by simon on 08.07.15.
  */
 public class Uploads {
+    static final String LOG_TAG = "Uploads";
 
     /**
      * Fetch an inputStream from an URI and parse it into an bufferd byte array for marshalling.
+     *
      * @param resolver
      * @param path
      * @return
      *
      * Further reading: https://stackoverflow.com/questions/10296734/image-uri-to-bytesarray
      */
-    public static ArrayList UriToStream(ContentResolver resolver, Uri path) {
+    public static ArrayList uriToStream(ContentResolver resolver, Uri path) {
         ArrayList resultArray = new ArrayList();
 
         // get input stream of the uri
@@ -62,5 +67,42 @@ public class Uploads {
         resultArray.add(streamLength);
 
         return resultArray;
+    }
+
+    /**
+     * Extracts a file-extension from a given URI.
+     *
+     * @param _fileName File-Name.
+     * @return Extension-String or null.
+     */
+    public static String getFileExtension(String _fileName) {
+
+        int extensionPosition = _fileName.lastIndexOf(".") + 1;
+        String extensionName = _fileName.substring(extensionPosition);
+
+        return extensionName;
+    }
+
+    /**
+     * Extracts a file-name from a given URI.
+     *
+     * @param _path File-URI.
+     * @return File-String or null.
+     */
+    public static String getFileName(ContentResolver _resolver, Uri _path) {
+
+        Cursor cursor = _resolver.query(_path, null, null, null, null);
+        String fileName = null;
+        try {
+
+            if(cursor != null && cursor.moveToFirst()) {
+                fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+            }
+
+        } finally {
+            cursor.close();
+        }
+
+        return fileName;
     }
 }

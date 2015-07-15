@@ -111,6 +111,10 @@ public class MessageAdapter extends ArrayAdapter<MessageModel> {
             TextView usernameText = (TextView) row.findViewById(R.id.send_notification_username);
             usernameText.setText(chatMessage.getOwnerName());
 
+            // set filename
+            TextView filenameText = (TextView) row.findViewById(R.id.send_notification_filename);
+            filenameText.setText(chatMessage.getStreamName());
+
             // set preview image & click listener
             ImageView previewImage = (ImageView) row.findViewById(R.id.send_notification_img);
             RelativeLayout uploadContainer = (RelativeLayout)

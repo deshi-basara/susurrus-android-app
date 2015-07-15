@@ -199,17 +199,34 @@ public class ChatActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //String Fpath = data.getDataString();
+        String Fpath = data.getDataString();
+
+        Log.d(LOG_TAG, "fpath: " + Fpath);
 
         // what data did we receive as a result?
         switch(requestCode) {
             case MessageModel.IMAGE_MESSAGE:
                 // Image
                 if(data.getData() != null) {
-                    ArrayList results = Uploads.UriToStream(getContentResolver(), data.getData());
-                    MessageModel message = getMessageFromFile(MessageModel.IMAGE_MESSAGE, results);
+
+                    // extract needed data
+                    ArrayList results = Uploads.uriToStream(getContentResolver(), data.getData());
+                    String fileName = Uploads.getFileName(getContentResolver(), data.getData());
+                    String fileExtension = Uploads.getFileExtension(fileName);
+
+                    Log.d(LOG_TAG, "fileName: " + fileName);
+                    Log.d(LOG_TAG, "fileExtension: " + fileExtension);
+
+                    // build message from given data
+                    MessageModel message = getMessageFromFile(
+                            MessageModel.IMAGE_MESSAGE,
+                            results,
+                            fileName,
+                            fileExtension
+                    );
                     addMessage(message);
                     distributeMessage(message);
+
                 }
 
                 break;
@@ -391,15 +408,21 @@ public class ChatActivity extends ActionBarActivity {
      * Returns a new MessageModel that is enriched with a fileInput-stream and its length.
      * @return MessageModel
      */
-    private MessageModel getMessageFromFile(int _messageType, ArrayList streamData) {
+    private MessageModel getMessageFromFile(int _messageType, ArrayList _streamData,
+                                            String _fileName, String _fileExtension) {
         MessageModel newMessage = new MessageModel(
                 true,
                 this.userName,
                 _messageType
         );
-        newMessage.setStream((byte[]) streamData.get(0), (int) streamData.get(1));
+        newMessage.setStream(
+                (byte[]) _streamData.get(0),
+                (int) _streamData.get(1),
+                _fileName,
+                _fileExtension
+        );
 
-        Log.d(LOG_TAG, "streamLength: " + streamData.get(1));
+        Log.d(LOG_TAG, "streamLength: " + _streamData.get(1));
 
         return newMessage;
     }

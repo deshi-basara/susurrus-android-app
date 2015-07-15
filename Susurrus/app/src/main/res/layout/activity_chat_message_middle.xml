@@ -30,21 +30,8 @@
              />
 
         <TextView
-            android:id="@+id/send_notification_text"
-            android:layout_toRightOf="@+id/send_notification_img"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/susurrus_white"
-            android:text="@string/chat_upload_notification"
-            android:textSize="12dp"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="4dp"
-            />
-
-        <TextView
-            android:layout_toRightOf="@+id/send_notification_text"
             android:id="@+id/send_notification_username"
+            android:layout_toRightOf="@+id/send_notification_img"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -52,6 +39,46 @@
             android:textStyle="bold"
             android:textSize="12dp"
             android:textColor="@color/susurrus_white"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="4dp"
+            />
+
+        <TextView
+            android:id="@+id/send_notification_text"
+            android:layout_toRightOf="@+id/send_notification_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/susurrus_white"
+            android:text="hat"
+            android:textSize="12dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="4dp"
+            />
+
+        <TextView
+            android:id="@+id/send_notification_filename"
+            android:layout_toRightOf="@+id/send_notification_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/susurrus_white"
+            android:text="FILENAME"
+            android:textStyle="bold"
+            android:textSize="12dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="4dp"
+            />
+
+        <TextView
+            android:id="@+id/send_notification_text_two"
+            android:layout_toRightOf="@+id/send_notification_filename"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/susurrus_white"
+            android:text="hochgeladen."
+            android:textSize="12dp"
             android:layout_centerVertical="true"
             />
 
