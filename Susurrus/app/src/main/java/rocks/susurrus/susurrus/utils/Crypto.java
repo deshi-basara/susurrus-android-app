@@ -39,6 +39,12 @@ public class Crypto {
 
     private static final String CRYPTO_ALGO = "RSA";
 
+    /**
+     * Generates a private- and public-RSA-Key with 2048 bits.
+     *
+     * @return Arraylist with privateKey [0] and publicKey [1].
+     * @throws RuntimeException
+     */
     public static ArrayList generateKeys() throws RuntimeException {
         ArrayList keys = new ArrayList();
 
@@ -65,6 +71,11 @@ public class Crypto {
         return keys;
     }
 
+    /**
+     * Encodes a given public-/private-Key as base64 string.
+     * @param key
+     * @return
+     */
     public static String keyToString(Key key) {
         byte[] keyBytes = key.getEncoded();
         String key64 = Base64.encodeToString(keyBytes, Base64.DEFAULT);
@@ -72,6 +83,12 @@ public class Crypto {
         return key64;
     }
 
+    /**
+     * Converts a given base64-String into an usable publicKey.
+     *
+     * @param keyString Base64-String of a publicKey.
+     * @return PublicKey.
+     */
     public static PublicKey publicStringToKey(String keyString) {
         // convert back to bytes and construct an X509EncodedKeySpec from it
         byte[] keyBytes = Base64.decode(keyString, Base64.DEFAULT);
@@ -91,6 +108,12 @@ public class Crypto {
         return publicKey;
     }
 
+    /**
+     * Converts a given base64-String into an usable privateKey.
+     *
+     * @param keyString
+     * @return
+     */
     public static PrivateKey privateStringToKey(String keyString) {
         // convert back to bytes and construct an PKCS8EncodedKeySpec from it
         byte[] keyBytes = Base64.decode(keyString, Base64.DEFAULT);
@@ -111,7 +134,7 @@ public class Crypto {
     }
 
     /**
-     * Encrypts an unencrypted serializable Object with the handed publicKey.
+     * Encrypts an unencrypted serializable Object with AES.
      *
      * At first an AES-Session-Key is generated for encrypting the handed SealedObject. The AES-
      * Session-Key is wrapped with the user's publicKey. The wrapped-key can be used to decrypt
@@ -199,7 +222,11 @@ public class Crypto {
     }
 
     /**
-     * Decrypts an encrypted sealedObject with the handed privateKey.
+     * Decrypts an AES encrypted serializable Object with the handed wrapped- and private-Key.
+     *
+     * At first the AES-Session-Key is restored from the user's privateKey which unwraps it from
+     * the wrappedKey. The restored AES-Session-Key is used to decrypt the handed SealedObject.
+     *
      * @param _encryptedObj RSA-encrypted sealedObject.
      * @param _privateKey The user's privateKey.
      * @return An unencrypted Object.
